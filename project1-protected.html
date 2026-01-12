@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Name 1 — Premium Plans — Walker Nosworthy</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <style>
+        /* License gate styling - matches your existing design language */
+        .license-gate {
+            position: fixed;
+            inset: 0;
+            background: #f7f5ee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .license-gate.hidden {
+            display: none;
+        }
+
+        .license-form {
+            max-width: 480px;
+            padding: 60px 40px;
+            border: 1px solid #d8d2c6;
+            background: white;
+        }
+
+        .license-form h2 {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            margin: 0 0 24px 0;
+            text-transform: uppercase;
+        }
+
+        .license-form p {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #666;
+            margin: 0 0 24px 0;
+        }
+
+        .license-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            border: 1px solid #d8d2c6;
+            background: #f7f5ee;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+
+        .license-input:focus {
+            outline: none;
+            border-color: #1f1f1f;
+        }
+
+        .license-button {
+            width: 100%;
+            padding: 12px 16px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            font-weight: 500;
+            background: #1f1f1f;
+            color: white;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .license-button:hover {
+            background: #333;
+        }
+
+        .license-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .license-error {
+            color: #c33;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+
+        .license-links {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #d8d2c6;
+            font-size: 12px;
+        }
+
+        .license-links a {
+            color: #1f1f1f;
+            text-decoration: none;
+            border-bottom: 1px solid #d8d2c6;
+        }
+
+        .license-links a:hover {
+            border-bottom-color: #1f1f1f;
+        }
+
+        /* Premium content sections */
+        .premium-content {
+            display: none;
+        }
+
+        .premium-content.unlocked {
+            display: block;
+        }
+
+        .measurements-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #d8d2c6;
+            padding: 20px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+        }
+
+        .measurements-panel h3 {
+            font-size: 13px;
+            font-weight: 500;
+            margin: 0 0 16px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .measurement-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .measurement-label {
+            color: #666;
+        }
+
+        .measurement-value {
+            font-weight: 500;
+        }
+
+        @media (max-width: 700px) {
+            .measurements-panel {
+                position: static;
+                width: 100%;
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+<body class="project-detail-page">
+
+    <!-- License Gate (shows before authentication) -->
+    <div id="licenseGate" class="license-gate">
+        <div class="license-form">
+            <h2>Access Premium Plans</h2>
+            <p>Enter your license key to access the full furniture plans, measurements, and assembly instructions.</p>
+
+            <input
+                type="text"
+                id="licenseKeyInput"
+                class="license-input"
+                placeholder="XXXX-XXXX-XXXX-XXXX"
+                autocomplete="off"
+            />
+
+            <button id="validateButton" class="license-button">
+                Unlock Plans
+            </button>
+
+            <div id="errorMessage" class="license-error"></div>
+
+            <div class="license-links">
+                <a href="index.html">← Back to Portfolio</a> ·
+                <a href="#purchase">Purchase Plans</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Protected Content (hidden until license validated) -->
+    <div id="protectedContent" class="premium-content">
+
+        <!-- Full-bleed model viewer -->
+        <div class="fullbleed-viewer">
+            <model-viewer
+                src="https://pub-fe05b24a16c144acaac1543477b4828c.r2.dev/model1.glb"
+                alt="Model 1"
+                camera-controls
+                auto-rotate
+                shadow-intensity="3"
+                exposure="1.1"
+                ar>
+            </model-viewer>
+        </div>
+
+        <!-- Project info overlay (upper left) -->
+        <div class="project-info-overlay">
+            <a href="index.html" class="back-link">← Back to Portfolio</a>
+
+            <div class="project-title-large">Model Name 1</div>
+
+            <div class="project-details">
+                <div class="detail-row">
+                    <span class="detail-label">Year:</span>
+                    <span class="detail-value">2026</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Medium:</span>
+                    <span class="detail-value">Digital</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Dimensions:</span>
+                    <span class="detail-value">32" W × 18" D × 30" H</span>
+                </div>
+            </div>
+
+            <div class="project-description-full">
+                <p>This is a detailed description of your first 3D model. You can write more extensively here about the concept, process, materials, inspiration, and context of the work.</p>
+                <p>Premium content includes detailed measurements, cutting diagrams, joinery details, and step-by-step assembly instructions.</p>
+                <p><strong>Download your watermarked PDF:</strong> <a href="#" id="pdfDownloadLink">Furniture Plans PDF</a></p>
+            </div>
+        </div>
+
+        <!-- Premium: Measurements Panel -->
+        <div class="measurements-panel">
+            <h3>Detailed Measurements</h3>
+
+            <div class="measurement-item">
+                <span class="measurement-label">Overall Width</span>
+                <span class="measurement-value">32"</span>
+            </div>
+            <div class="measurement-item">
+                <span class="measurement-label">Overall Depth</span>
+                <span class="measurement-value">18"</span>
+            </div>
+            <div class="measurement-item">
+                <span class="measurement-label">Overall Height</span>
+                <span class="measurement-value">30"</span>
+            </div>
+            <div class="measurement-item">
+                <span class="measurement-label">Leg Thickness</span>
+                <span class="measurement-value">1.5" × 1.5"</span>
+            </div>
+            <div class="measurement-item">
+                <span class="measurement-label">Top Thickness</span>
+                <span class="measurement-value">0.75"</span>
+            </div>
+            <div class="measurement-item">
+                <span class="measurement-label">Rail Width</span>
+                <span class="measurement-value">3"</span>
+            </div>
+
+            <h3 style="margin-top: 24px;">Materials List</h3>
+
+            <div class="measurement-item">
+                <span class="measurement-label">Top Panel</span>
+                <span class="measurement-value">1 pc</span>
+            </div>
+            <div class="measurement-item">
+                <span class="measurement-label">Legs</span>
+                <span class="measurement-value">4 pcs</span>
+            </div>
+            <div class="measurement-item">
+                <span class="measurement-label">Apron Rails</span>
+                <span class="measurement-value">4 pcs</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- License Validation Script -->
+    <script>
+        // Configuration
+        const LEMON_SQUEEZY_STORE_ID = 'YOUR_STORE_ID'; // Replace with your store ID
+        const PRODUCT_ID = 'YOUR_PRODUCT_ID'; // Replace with this product's ID
+
+        // DOM elements
+        const licenseGate = document.getElementById('licenseGate');
+        const protectedContent = document.getElementById('protectedContent');
+        const licenseKeyInput = document.getElementById('licenseKeyInput');
+        const validateButton = document.getElementById('validateButton');
+        const errorMessage = document.getElementById('errorMessage');
+        const pdfDownloadLink = document.getElementById('pdfDownloadLink');
+
+        // Check for stored license key on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const storedLicense = localStorage.getItem('licenseKey_project1');
+            if (storedLicense) {
+                licenseKeyInput.value = storedLicense;
+                validateLicense(storedLicense);
+            }
+        });
+
+        // Validate button click
+        validateButton.addEventListener('click', () => {
+            const licenseKey = licenseKeyInput.value.trim();
+            if (licenseKey) {
+                validateLicense(licenseKey);
+            } else {
+                showError('Please enter a license key');
+            }
+        });
+
+        // Enter key validation
+        licenseKeyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                validateButton.click();
+            }
+        });
+
+        /**
+         * Validate license key with Lemon Squeezy API
+         */
+        async function validateLicense(licenseKey) {
+            validateButton.disabled = true;
+            validateButton.textContent = 'Validating...';
+            errorMessage.textContent = '';
+
+            try {
+                // Call Lemon Squeezy License API
+                const response = await fetch(`https://api.lemonsqueezy.com/v1/licenses/validate`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        license_key: licenseKey,
+                        instance_name: window.location.hostname, // Optional: tie to domain
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.valid && data.meta?.product_id === PRODUCT_ID) {
+                    // License is valid!
+                    unlockContent(licenseKey, data);
+                } else if (data.valid) {
+                    showError('This license key is for a different product');
+                } else {
+                    showError('Invalid license key. Please check and try again.');
+                }
+
+            } catch (error) {
+                console.error('Validation error:', error);
+                showError('Unable to validate license. Please try again.');
+            } finally {
+                validateButton.disabled = false;
+                validateButton.textContent = 'Unlock Plans';
+            }
+        }
+
+        /**
+         * Unlock premium content
+         */
+        function unlockContent(licenseKey, licenseData) {
+            // Store license key locally (so user doesn't need to re-enter)
+            localStorage.setItem('licenseKey_project1', licenseKey);
+
+            // Hide gate, show content
+            licenseGate.classList.add('hidden');
+            protectedContent.classList.add('unlocked');
+
+            // Set PDF download link (if available in license metadata)
+            if (licenseData.meta?.pdf_url) {
+                pdfDownloadLink.href = licenseData.meta.pdf_url;
+            }
+
+            console.log('Content unlocked for:', licenseData.meta?.customer_email);
+        }
+
+        /**
+         * Show error message
+         */
+        function showError(message) {
+            errorMessage.textContent = message;
+        }
+
+        /**
+         * Alternative: Simple hash-based validation (for testing/development)
+         * Remove this in production - use Lemon Squeezy API only
+         */
+        async function validateLicenseSimple(licenseKey) {
+            // Simple test keys for development
+            const validKeys = ['TEST-1234-5678-9012', 'DEMO-KEY-FOR-TESTING'];
+
+            if (validKeys.includes(licenseKey)) {
+                unlockContent(licenseKey, { meta: { customer_email: 'test@example.com' } });
+            } else {
+                showError('Invalid license key');
+            }
+        }
+
+        // For testing: uncomment this line and comment out the real API call above
+        // validateButton.addEventListener('click', () => validateLicenseSimple(licenseKeyInput.value.trim()));
+    </script>
+</body>
+</html>

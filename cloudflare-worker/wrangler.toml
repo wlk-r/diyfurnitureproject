@@ -1,0 +1,23 @@
+# Cloudflare Workers configuration
+# See: https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "pdf-watermark-worker"
+main = "pdf-watermark-worker.js"
+compatibility_date = "2024-01-01"
+
+# R2 bucket binding
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "furniture-plans-pdfs"  # Change this to your bucket name
+
+# Environment variables (set these in Cloudflare dashboard or use wrangler secret)
+# [vars]
+# LEMON_SQUEEZY_WEBHOOK_SECRET = "your-webhook-secret-here"
+
+# For local development
+[env.dev]
+name = "pdf-watermark-worker-dev"
+
+# For production
+[env.production]
+name = "pdf-watermark-worker"

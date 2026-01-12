@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Name 1 — Walker Nosworthy</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+</head>
+<body class="project-detail-page">
+    <!-- Full-bleed model viewer -->
+    <div class="fullbleed-viewer">
+        <model-viewer
+            src="https://pub-fe05b24a16c144acaac1543477b4828c.r2.dev/model1.glb"
+            alt="Model 1"
+            camera-controls
+            auto-rotate
+            shadow-intensity="3"
+            exposure="1.1"
+            ar>
+        </model-viewer>
+    </div>
+
+    <!-- Project info overlay (upper left) -->
+    <div class="project-info-overlay">
+        <a href="index.html" class="back-link">← Back to Portfolio</a>
+
+        <div class="project-title-large">Model Name 1</div>
+
+        <div class="project-details">
+            <div class="detail-row">
+                <span class="detail-label">Year:</span>
+                <span class="detail-value">2026</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Medium:</span>
+                <span class="detail-value">Digital</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Dimensions:</span>
+                <span class="detail-value">Variable</span>
+            </div>
+        </div>
+
+        <div class="project-description-full">
+            <p>This is a detailed description of your first 3D model. You can write more extensively here about the concept, process, materials, inspiration, and context of the work.</p>
+            <p>Add multiple paragraphs to provide comprehensive information about this project. Discuss the technical approach, creative decisions, and any relevant background.</p>
+        </div>
+    </div>
+</body>
+</html>

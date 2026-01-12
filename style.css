@@ -1,0 +1,434 @@
+/* ============================================
+   Contemporary Art Gallery Editorial Layout
+   ============================================ */
+
+/* === Reset & Base === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    color: #1f1f1f;
+    background-color: #f7f5ee;
+    font-weight: 300;
+}
+
+/* === Page Grid (3-column layout) === */
+.page-grid {
+    display: grid;
+    grid-template-columns: 240px 1fr 280px;
+    gap: 0;
+    min-height: 100vh;
+    padding: 28px;
+    max-width: 1800px;
+    margin: 0 auto;
+}
+
+/* Vertical hairline rules between columns */
+.sidebar-left {
+    border-right: 1px solid #d8d2c6;
+    padding-right: 24px;
+    position: sticky;
+    top: 28px;
+    align-self: start;
+    height: fit-content;
+}
+
+.main-content {
+    padding: 0 32px;
+    border-right: 1px solid #d8d2c6;
+}
+
+.sidebar-right {
+    padding-left: 24px;
+    position: sticky;
+    top: 28px;
+    align-self: start;
+    height: fit-content;
+}
+
+/* === Typography === */
+.sidebar-header {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-weight: 400;
+}
+
+.hairline {
+    border: none;
+    border-top: 1px solid #d8d2c6;
+    margin: 12px 0 20px 0;
+}
+
+.section-label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-weight: 400;
+}
+
+/* === Left Sidebar: Profile === */
+.sidebar-section {
+    margin-bottom: 28px;
+}
+
+.sidebar-text {
+    font-size: 11px;
+    line-height: 1.5;
+    color: #1f1f1f;
+}
+
+.sidebar-link {
+    font-size: 11px;
+    color: #1f1f1f;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: opacity 0.2s;
+}
+
+.sidebar-link:hover {
+    opacity: 0.6;
+}
+
+/* === Right Sidebar: CV === */
+.cv-section {
+    margin-bottom: 36px;
+}
+
+.cv-category {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+    font-weight: 400;
+}
+
+.cv-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.cv-entry {
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.cv-role {
+    font-weight: 400;
+}
+
+.cv-place {
+    color: #666;
+}
+
+.cv-year {
+    color: #888;
+    font-size: 10px;
+}
+
+/* === Main Content: Project Modules === */
+.project-module {
+    margin-bottom: 64px;
+}
+
+.project-header {
+    margin-bottom: 20px;
+}
+
+.project-number {
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    font-weight: 400;
+    margin-bottom: 16px;
+}
+
+.project-meta-group {
+    display: block;
+    font-size: 11px;
+    line-height: 1.65;
+}
+
+.project-meta {
+    margin-bottom: 18px;
+}
+
+.meta-item {
+    font-size: 11px;
+    line-height: 1.65;
+    display: inline;
+}
+
+.meta-item::after {
+    content: ", ";
+}
+
+.meta-item:last-child::after {
+    content: "";
+}
+
+.meta-label {
+    letter-spacing: 0.02em;
+    font-weight: 400;
+}
+
+.project-description {
+    font-size: 11px;
+    line-height: 1.65;
+    margin-top: 16px;
+    max-width: 580px;
+}
+
+.project-description p {
+    margin: 0;
+}
+
+/* === Image Frame (3D Model Viewer) === */
+.image-frame {
+    background: transparent;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    margin-top: 18px;
+}
+
+model-viewer {
+    width: 100%;
+    height: 500px;
+    background-color: transparent;
+    --poster-color: transparent;
+}
+
+/* === Project Divider === */
+.project-divider {
+    border: none;
+    border-top: 1px solid #d8d2c6;
+    margin: 36px 0;
+}
+
+/* === Responsive Behavior === */
+
+/* Tablet: collapse right sidebar below */
+@media (max-width: 1100px) {
+    .page-grid {
+        grid-template-columns: 200px 1fr;
+        grid-template-rows: auto auto;
+    }
+
+    .sidebar-right {
+        grid-column: 1 / -1;
+        border-top: 1px solid #d8d2c6;
+        padding: 28px 0 0 0;
+        margin-top: 48px;
+        position: static;
+    }
+
+    .main-content {
+        border-right: none;
+    }
+}
+
+/* Mobile: single column, stack all */
+@media (max-width: 700px) {
+    .page-grid {
+        grid-template-columns: 1fr;
+        padding: 20px;
+    }
+
+    .sidebar-left,
+    .main-content,
+    .sidebar-right {
+        border-right: none;
+        padding: 0;
+        position: static;
+    }
+
+    .sidebar-left {
+        border-bottom: 1px solid #d8d2c6;
+        padding-bottom: 24px;
+        margin-bottom: 32px;
+    }
+
+    .main-content {
+        padding: 0;
+        margin-bottom: 32px;
+    }
+
+    .sidebar-right {
+        border-top: 1px solid #d8d2c6;
+        padding-top: 24px;
+    }
+
+    .project-header {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .project-meta-group {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    model-viewer {
+        height: 350px;
+    }
+
+    .image-frame {
+        padding: 0;
+    }
+}
+
+/* Small mobile adjustments */
+@media (max-width: 480px) {
+    body {
+        font-size: 11px;
+    }
+
+    .page-grid {
+        padding: 16px;
+    }
+
+    model-viewer {
+        height: 280px;
+    }
+
+    .project-module {
+        margin-bottom: 36px;
+    }
+}
+
+/* ============================================
+   Project Detail Page Styles
+   ============================================ */
+
+.project-detail-page {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* Full-bleed model viewer */
+.fullbleed-viewer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+}
+
+.fullbleed-viewer model-viewer {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    --poster-color: transparent;
+}
+
+/* Project info overlay (upper left) */
+.project-info-overlay {
+    position: relative;
+    z-index: 10;
+    padding: 28px;
+    padding-right: 24px;
+    max-width: 240px;
+    pointer-events: none;
+}
+
+.project-info-overlay * {
+    pointer-events: auto;
+}
+
+.back-link {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: #1f1f1f;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    margin-bottom: 20px;
+    transition: opacity 0.2s;
+}
+
+.back-link:hover {
+    opacity: 0.6;
+}
+
+.project-title-large {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-weight: 400;
+}
+
+.project-details {
+    margin-bottom: 20px;
+    padding-top: 12px;
+    border-top: 1px solid #d8d2c6;
+}
+
+.detail-row {
+    font-size: 11px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.detail-label {
+    letter-spacing: 0.04em;
+    font-weight: 400;
+    display: block;
+    text-transform: uppercase;
+    font-size: 10px;
+    margin-bottom: 4px;
+}
+
+.detail-value {
+    font-weight: 300;
+    display: block;
+}
+
+.project-description-full {
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.project-description-full p {
+    margin-bottom: 12px;
+}
+
+.project-description-full p:last-child {
+    margin-bottom: 0;
+}
+
+/* Responsive adjustments for project detail pages */
+@media (max-width: 768px) {
+    .project-info-overlay {
+        padding: 24px;
+        max-width: 90%;
+    }
+
+    .project-title-large {
+        font-size: 13px;
+    }
+}
+
+/* Make project number clickable on home page */
+a.project-number {
+    color: #1f1f1f;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+a.project-number:hover {
+    opacity: 0.6;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
