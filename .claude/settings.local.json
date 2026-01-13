@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(wrangler whoami:*)"
+      "Bash(wrangler whoami:*)",
+      "Bash(gh api:*)",
+      "Bash(wrangler r2 bucket cors put:*)",
+      "Bash(wrangler r2 bucket cors set:*)",
+      "Bash(nslookup:*)",
+      "Bash(wrangler deploy:*)",
+      "Bash(powershell -Command \"\\(Get-Content style.css | Measure-Object -Line\\).Lines\")"
     ]
   }
 }

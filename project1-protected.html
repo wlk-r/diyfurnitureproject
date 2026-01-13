@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <script src="model-loader.js" defer></script>
     <style>
         /* License gate styling - matches your existing design language */
         .license-gate {
@@ -201,7 +202,7 @@
         <!-- Full-bleed model viewer -->
         <div class="fullbleed-viewer">
             <model-viewer
-                src="https://pub-fe05b24a16c144acaac1543477b4828c.r2.dev/model1.glb"
+                data-model="model1.glb"
                 alt="Model 1"
                 camera-controls
                 auto-rotate

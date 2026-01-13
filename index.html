@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
     <!-- Import the Model Viewer library -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <!-- Protected Model Loader -->
+    <script src="model-loader.js" defer></script>
 </head>
 <body>
     <div class="page-grid">
@@ -49,7 +51,7 @@
                 </div>
                 <div class="image-frame">
                     <model-viewer
-                        src="https://pub-fe05b24a16c144acaac1543477b4828c.r2.dev/model1.glb"
+                        data-model="model1.glb"
                         alt="Model 1"
                         camera-controls
                         disable-zoom
@@ -80,7 +82,7 @@
                 </div>
                 <div class="image-frame">
                     <model-viewer
-                        src="https://pub-fe05b24a16c144acaac1543477b4828c.r2.dev/model2.glb"
+                        data-model="model2.glb"
                         alt="Model 2"
                         camera-controls
                         disable-zoom
@@ -111,7 +113,7 @@
                 </div>
                 <div class="image-frame">
                     <model-viewer
-                        src="https://pub-fe05b24a16c144acaac1543477b4828c.r2.dev/model3.glb"
+                        data-model="model3.glb"
                         alt="Model 3"
                         camera-controls
                         disable-zoom
