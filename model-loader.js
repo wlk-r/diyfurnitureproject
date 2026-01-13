@@ -4,7 +4,7 @@
  */
 
 // Configuration - UPDATE THIS AFTER DEPLOYING WORKER
-const WORKER_URL = 'https://diyfurniture-worker.YOUR_SUBDOMAIN.workers.dev';
+const WORKER_URL = 'https://diyfurniture-worker.wnosworthy.workers.dev';
 
 /**
  * Get signed URL for a model
