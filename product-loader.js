@@ -59,6 +59,7 @@ function createProductCard(product) {
         alt="${product.name}"
         camera-controls
         disable-zoom
+        disable-pan
         auto-rotate
         shadow-intensity="1"
         exposure="1"
