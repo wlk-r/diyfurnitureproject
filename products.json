@@ -1,0 +1,60 @@
+{
+  "products": [
+    {
+      "id": "1",
+      "name": "Queen Storage Bed",
+      "price": 45,
+      "model": "model1.glb",
+      "year": "2025",
+      "medium": "5/8\" and 3/4\" Pine Plywood, 3D Printed Hardware",
+      "dimensions": "Variable",
+      "shortDescription": "Platform bed with 9 storage drawers. Design maximizes storage space below mattress while maintaining a rigid structure.",
+      "fullDescription": [
+        "This platform bed design maximizes storage space with 9 integrated drawers while maintaining structural rigidity for long-term use.",
+        "Built from standard plywood sheets with 3D printed drawer hardware for smooth operation. The modular design allows for customization of drawer sizes and configurations."
+      ]
+    },
+    {
+      "id": "2",
+      "name": "Model Name 2",
+      "price": 35,
+      "model": "model2.glb",
+      "year": "2026",
+      "medium": "Digital",
+      "dimensions": "Variable",
+      "shortDescription": "Description of your second 3D model. Brief overview of the concept, materials, and process behind this work.",
+      "fullDescription": [
+        "This is a detailed description of your second 3D model. You can write more extensively here about the concept, process, materials, inspiration, and context of the work.",
+        "Add multiple paragraphs to provide comprehensive information about this project. Discuss the technical approach, creative decisions, and any relevant background."
+      ]
+    },
+    {
+      "id": "3",
+      "name": "Model Name 3",
+      "price": 40,
+      "model": "model3.glb",
+      "year": "2026",
+      "medium": "Digital",
+      "dimensions": "Variable",
+      "shortDescription": "Description of your third 3D model. Brief overview of the concept, materials, and process behind this work.",
+      "fullDescription": [
+        "This is a detailed description of your third 3D model. You can write more extensively here about the concept, process, materials, inspiration, and context of the work.",
+        "Add multiple paragraphs to provide comprehensive information about this project. Discuss the technical approach, creative decisions, and any relevant background."
+      ]
+    },
+    {
+      "id": "4",
+      "name": "Model Name 4",
+      "price": 50,
+      "model": "model4.glb",
+      "year": "2026",
+      "medium": "Digital",
+      "dimensions": "Variable",
+      "shortDescription": "Description of your fourth 3D model. Brief overview of the concept, materials, and process behind this work.",
+      "fullDescription": [
+        "This is a detailed description of your fourth 3D model. You can write more extensively here about the concept, process, materials, inspiration, and context of the work.",
+        "Add multiple paragraphs to provide comprehensive information about this project. Discuss the technical approach, creative decisions, and any relevant background."
+      ]
+    }
+  ]
+}
