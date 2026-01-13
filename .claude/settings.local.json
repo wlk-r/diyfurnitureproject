@@ -7,7 +7,10 @@
       "Bash(wrangler r2 bucket cors set:*)",
       "Bash(nslookup:*)",
       "Bash(wrangler deploy:*)",
-      "Bash(powershell -Command \"\\(Get-Content style.css | Measure-Object -Line\\).Lines\")"
+      "Bash(powershell -Command \"\\(Get-Content style.css | Measure-Object -Line\\).Lines\")",
+      "Bash(find:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
