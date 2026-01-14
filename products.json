@@ -2,16 +2,16 @@
   "products": [
     {
       "id": "1",
-      "name": "Queen Storage Bed",
-      "price": 45,
+      "name": "Work Table",
+      "price": 5,
       "model": "model1.glb",
       "year": "2025",
-      "medium": "5/8\" and 3/4\" Pine Plywood, 3D Printed Hardware",
-      "dimensions": "Variable",
-      "shortDescription": "Platform bed with 9 storage drawers. Design maximizes storage space below mattress while maintaining a rigid structure.",
+      "medium": "3/4\" pine plywood",
+      "dimensions": "60\"w x 30\"d x 36\"h",
+      "shortDescription": "Simple work table design with a focus on stability and ease of assembly. Designed to be assembled with glue and brad nails or staples, but can alternatively be screwed together for disassembly",
       "fullDescription": [
-        "This platform bed design maximizes storage space with 9 integrated drawers while maintaining structural rigidity for long-term use.",
-        "Built from standard plywood sheets with 3D printed drawer hardware for smooth operation. The modular design allows for customization of drawer sizes and configurations."
+        "Simple work table design with a focus on stability and ease of construction.",
+        "Designed to be assembled with glue and brad nails or staples, but can alternatively be screwed together for disassembly"
       ]
     },
     {
