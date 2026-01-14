@@ -3,52 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>diy furniture project</title>
+    <title>Coming Soon — diy furniture project</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-    <!-- Import the Model Viewer library -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
-    <!-- Product Loader (loads products from JSON) -->
-    <script src="product-loader.js" defer></script>
-    <!-- Protected Model Loader -->
-    <script src="model-loader.js" defer></script>
+    <style>
+        /* Access form styling to match site aesthetic */
+        .access-form {
+            margin-top: 32px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .access-input {
+            flex: 1;
+            padding: 10px 12px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            border: 1px solid #d8d2c6;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #1f1f1f;
+            outline: none;
+        }
+
+        .access-input:focus {
+            border-color: #1f1f1f;
+        }
+
+        .access-button {
+            padding: 10px 20px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background-color: #1f1f1f;
+            color: #f7f5ee;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .access-button:hover {
+            background-color: #3a3a3a;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            font-size: 10px;
+            height: 14px;
+            margin-top: 4px;
+        }
+    </style>
 </head>
-<body>
-    <div class="page-grid">
-        <!-- Left Sidebar: Profile -->
-        <aside class="sidebar-left">
-            <div class="sidebar-header">diy furniture project</div>
-            <hr class="hairline">
-
-            <div class="sidebar-section">
-                <p class="sidebar-text">Material and virtual design that seeks to make building durable furniture more accessible.</p>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="section-label">PAGES</div>
-                <a href="index.html" class="sidebar-link">Home</a><br>
-                <a href="about.html" class="sidebar-link">About</a><br>
-                <a href="suggested-tools.html" class="sidebar-link">Suggested Tools</a><br>
-                <a href="faqs.html" class="sidebar-link">FAQs</a>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="section-label">CONTACT</div>
-                <a href="mailto:wnosworthy@gmail.com" class="sidebar-link">wnosworthy@gmail.com</a><br>
-                <a href="https://instagram.com/walkernotsoworthy" class="sidebar-link">Instagram</a>
-            </div>
-        </aside>
-
-        <!-- Main Content: Work Feed -->
-        <main class="main-content">
-            <!-- Products loaded dynamically from products.json -->
-            <div class="models-grid">
-                <!-- Products will be loaded here by product-loader.js -->
-            </div>
-        </main>
-
+<body class="project-detail-page">
+    <!-- Full-bleed model viewer -->
+    <div class="fullbleed-viewer">
+        <model-viewer
+            id="comingSoonModel"
+            alt="Coming Soon"
+            camera-controls
+            auto-rotate
+            shadow-intensity="1"
+            exposure="1"
+            ar>
+        </model-viewer>
     </div>
+
+    <!-- Project info overlay (upper left) -->
+    <div class="project-info-overlay">
+        <div class="project-title-large">Coming Soon</div>
+
+        <div class="project-details">
+            <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span class="detail-value">Preview</span>
+            </div>
+        </div>
+
+        <div class="project-description-full">
+            <p>Material and virtual design that seeks to make building durable furniture more accessible.</p>
+
+            <div class="access-form">
+                <label class="form-label" for="accessCode">Enter Access Code to Continue</label>
+                <div class="form-group">
+                    <input
+                        type="text"
+                        id="accessCode"
+                        class="access-input"
+                        placeholder="Access code"
+                        autocomplete="off"
+                    >
+                    <button class="access-button" onclick="checkCode()">Enter</button>
+                </div>
+                <div class="error-message" id="errorMessage"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const WORKER_URL = 'https://diyfurniture-worker.wnosworthy.workers.dev';
+        const ACCESS_CODE = 'diyfurnitureproject2026'; // Change this to your desired access code
+
+        // Load the protected model with signed URL
+        async function loadModel() {
+            const modelViewer = document.getElementById('comingSoonModel');
+            const modelName = 'model1.glb';
+
+            try {
+                // Fetch signed URL from worker
+                const response = await fetch(`${WORKER_URL}/api/model-url`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ modelName })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to get signed URL: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                modelViewer.setAttribute('src', data.url);
+                console.log('Model loaded with signed URL');
+
+            } catch (error) {
+                console.error('Error loading model:', error);
+                // Fallback to direct R2 URL if worker fails
+                modelViewer.setAttribute('src', 'https://pub-fe05b24a16c144acaac1543477b4828c.r2.dev/model1.glb');
+            }
+        }
+
+        // Check access code
+        function checkCode() {
+            const input = document.getElementById('accessCode');
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (input.value === ACCESS_CODE) {
+                // Correct code - redirect to main site
+                window.location.href = 'main.html';
+            } else {
+                // Incorrect code - show error
+                errorMessage.textContent = 'Invalid access code';
+                input.value = '';
+                setTimeout(() => {
+                    errorMessage.textContent = '';
+                }, 3000);
+            }
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('accessCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkCode();
+            }
+        });
+
+        // Load model when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadModel);
+        } else {
+            loadModel();
+        }
+    </script>
 </body>
 </html>

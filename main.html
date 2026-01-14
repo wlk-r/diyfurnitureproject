@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>diy furniture project</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <!-- Import the Model Viewer library -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <!-- Product Loader (loads products from JSON) -->
+    <script src="product-loader.js" defer></script>
+    <!-- Protected Model Loader -->
+    <script src="model-loader.js" defer></script>
+</head>
+<body>
+    <div class="page-grid">
+        <!-- Left Sidebar: Profile -->
+        <aside class="sidebar-left">
+            <div class="sidebar-header">diy furniture project</div>
+            <hr class="hairline">
+
+            <div class="sidebar-section">
+                <p class="sidebar-text">Material and virtual design that seeks to make building durable furniture more accessible.</p>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-label">PAGES</div>
+                <a href="main.html" class="sidebar-link">Home</a><br>
+                <a href="about.html" class="sidebar-link">About</a><br>
+                <a href="suggested-tools.html" class="sidebar-link">Suggested Tools</a><br>
+                <a href="faqs.html" class="sidebar-link">FAQs</a>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-label">CONTACT</div>
+                <a href="mailto:wnosworthy@gmail.com" class="sidebar-link">wnosworthy@gmail.com</a><br>
+                <a href="https://instagram.com/walkernotsoworthy" class="sidebar-link">Instagram</a>
+            </div>
+        </aside>
+
+        <!-- Main Content: Work Feed -->
+        <main class="main-content">
+            <!-- Products loaded dynamically from products.json -->
+            <div class="models-grid">
+                <!-- Products will be loaded here by product-loader.js -->
+            </div>
+        </main>
+
+    </div>
+</body>
+</html>

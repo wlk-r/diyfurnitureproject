@@ -15,7 +15,9 @@
       "Bash(grep:*)",
       "Bash(ls:*)",
       "Bash(git fetch:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(gh run:*)",
+      "Bash(move index.html main.html)"
     ]
   }
 }
