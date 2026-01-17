@@ -328,11 +328,16 @@ async function loadProtectedModels() {
       }
     }
   } else {
-    // Main page: load models quickly without material system
-    const loadPromises = modelViewers.length > 0 ? [] : [];
+    // Main page: initialize materials once, then load all models with materials
+    console.log('[MATERIALS] Main page - initializing material source...');
+    await initMaterialSource();
+    console.log('[MATERIALS] Source ready, loading models...');
 
+    // Load all models in parallel, applying materials to each
+    const loadPromises = [];
     for (const viewer of modelViewers) {
-      loadPromises.push(loadModelSimple(viewer));
+      if (viewer.id === 'material-source-viewer') continue;
+      loadPromises.push(loadSingleModel(viewer, false)); // no delay on main page
     }
 
     await Promise.all(loadPromises);
