@@ -2,6 +2,62 @@
    Contemporary Art Gallery Editorial Layout
    ============================================ */
 
+/* === Material Loading System === */
+/* Models fade in when materials are ready */
+model-viewer[data-model].materials-ready {
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Circular loading spinner for model cards */
+.model-loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 36px;
+    height: 36px;
+    z-index: 5;
+    transition: opacity 0.3s ease;
+}
+.model-loading-spinner.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+.model-loading-spinner svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+.model-loading-spinner .spinner-track {
+    fill: none;
+    stroke: #d8d2c6;
+    stroke-width: 2;
+}
+.model-loading-spinner .spinner-progress {
+    fill: none;
+    stroke: #1f1f1f;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 100.53;
+    stroke-dashoffset: 100.53;
+    transition: stroke-dashoffset 0.2s ease;
+}
+
+/* Ensure model-viewer-container is positioned for spinner */
+.model-viewer-container {
+    position: relative;
+    background: #f7f5ee;
+}
+
+/* Hide model-viewer in cards until materials ready */
+.model-viewer-container model-viewer[data-model]:not(.materials-ready) {
+    opacity: 0;
+}
+
 /* === Reset & Base === */
 * {
     margin: 0;
@@ -170,9 +226,16 @@ body {
 .model-info {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
+    align-items: flex-start;
     font-size: 11px;
     padding: 0 4px;
+}
+
+.model-info-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
 }
 
 .model-name {
@@ -180,13 +243,26 @@ body {
     text-decoration: none;
     font-weight: 400;
     transition: opacity 0.2s;
-    flex: 1;
 }
 
 .model-name:hover {
     opacity: 0.6;
     text-decoration: underline;
     text-underline-offset: 2px;
+}
+
+.model-specs {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 10px;
+    color: #666;
+    line-height: 1.4;
+}
+
+.model-materials,
+.model-dimensions {
+    font-weight: 300;
 }
 
 .model-price {
@@ -491,6 +567,10 @@ a.project-number:hover {
 }
 
 /* === Buy Button === */
+.buy-button-container {
+    margin-top: 20px;
+}
+
 .buy-button {
     display: inline-block;
     padding: 12px 24px;
@@ -514,6 +594,17 @@ a.project-number:hover {
 
 .buy-button:active {
     transform: translateY(1px);
+}
+
+.buy-button-disabled {
+    background: #999;
+    border-color: #999;
+    cursor: not-allowed;
+}
+
+.buy-button-disabled:hover {
+    background: #999;
+    color: white;
 }
 
 /* === Content Pages (About, FAQs, etc.) === */

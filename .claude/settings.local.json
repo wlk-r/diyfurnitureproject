@@ -20,7 +20,10 @@
       "Bash(move index.html main.html)",
       "Bash(dir:*)",
       "Bash(findstr:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh workflow run:*)",
+      "Bash(npx http-server -p 8080 -c-1)"
     ]
   }
 }

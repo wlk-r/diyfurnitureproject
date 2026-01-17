@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js SSAO Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            background: #1a1a1a;
+            color: #f0f0f0;
+            overflow: hidden;
+        }
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+        }
+        canvas {
+            display: block;
+        }
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 16px;
+            border: 1px solid #333;
+            z-index: 100;
+            min-width: 280px;
+        }
+        .controls h2 {
+            font-size: 12px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #333;
+            padding-bottom: 8px;
+        }
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .control-row label {
+            flex: 1;
+        }
+        .control-row input[type="range"] {
+            width: 120px;
+        }
+        .control-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+        .control-row span {
+            width: 40px;
+            text-align: right;
+            font-size: 10px;
+            color: #888;
+        }
+        .upload-zone {
+            border: 1px dashed #444;
+            padding: 12px;
+            text-align: center;
+            margin-top: 12px;
+            cursor: pointer;
+        }
+        .upload-zone:hover {
+            border-color: #666;
+            background: rgba(255,255,255,0.05);
+        }
+        .upload-zone input {
+            display: none;
+        }
+        .status {
+            margin-top: 12px;
+            padding: 8px;
+            background: #222;
+            font-size: 10px;
+        }
+        select {
+            background: #333;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 4px 8px;
+            font-family: inherit;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <div class="controls">
+        <h2>SSAO Controls</h2>
+
+        <div class="control-row">
+            <label>Enable SSAO</label>
+            <input type="checkbox" id="ssaoEnabled" checked>
+        </div>
+
+        <div class="control-row">
+            <label>Kernel Radius</label>
+            <input type="range" id="kernelRadius" min="1" max="32" value="8" step="1">
+            <span id="kernelRadiusVal">8</span>
+        </div>
+
+        <div class="control-row">
+            <label>Min Distance</label>
+            <input type="range" id="minDistance" min="0.001" max="0.02" value="0.005" step="0.001">
+            <span id="minDistanceVal">0.005</span>
+        </div>
+
+        <div class="control-row">
+            <label>Max Distance</label>
+            <input type="range" id="maxDistance" min="0.01" max="0.3" value="0.1" step="0.01">
+            <span id="maxDistanceVal">0.1</span>
+        </div>
+
+        <div class="control-row">
+            <label>Output</label>
+            <select id="ssaoOutput">
+                <option value="default">Default (Combined)</option>
+                <option value="ssao">SSAO Only</option>
+                <option value="blur">Blurred SSAO</option>
+                <option value="depth">Depth</option>
+                <option value="normal">Normals</option>
+            </select>
+        </div>
+
+        <h2 style="margin-top: 16px;">Scene</h2>
+
+        <div class="control-row">
+            <label>Auto Rotate</label>
+            <input type="checkbox" id="autoRotate" checked>
+        </div>
+
+        <div class="control-row">
+            <label>Background</label>
+            <select id="bgColor">
+                <option value="#1a1a1a">Dark</option>
+                <option value="#f7f5ee">Light</option>
+                <option value="#ffffff">White</option>
+                <option value="#000000">Black</option>
+            </select>
+        </div>
+
+        <div class="upload-zone" id="uploadZone">
+            <label for="modelInput">Drop GLB or click to upload</label>
+            <input type="file" id="modelInput" accept=".glb,.gltf">
+        </div>
+
+        <div class="status" id="status">Loading default scene...</div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { SSAOPass } from 'three/addons/postprocessing/SSAOPass.js';
+        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+        // Scene setup
+        const container = document.getElementById('canvas-container');
+        const statusEl = document.getElementById('status');
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a1a);
+
+        // Camera
+        const camera = new THREE.PerspectiveCamera(
+            45,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+        camera.position.set(3, 2, 3);
+
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.0;
+        container.appendChild(renderer.domElement);
+
+        // Controls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 1.0;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        directionalLight.position.set(5, 10, 7);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        directionalLight.shadow.camera.near = 0.5;
+        directionalLight.shadow.camera.far = 50;
+        directionalLight.shadow.camera.left = -10;
+        directionalLight.shadow.camera.right = 10;
+        directionalLight.shadow.camera.top = 10;
+        directionalLight.shadow.camera.bottom = -10;
+        scene.add(directionalLight);
+
+        const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        fillLight.position.set(-5, 3, -5);
+        scene.add(fillLight);
+
+        // Ground plane
+        const groundGeometry = new THREE.PlaneGeometry(20, 20);
+        const groundMaterial = new THREE.MeshStandardMaterial({
+            color: 0x808080,
+            roughness: 0.8,
+            metalness: 0.2
+        });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -0.01;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // Post-processing
+        const composer = new EffectComposer(renderer);
+
+        const renderPass = new RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        const ssaoPass = new SSAOPass(scene, camera, window.innerWidth, window.innerHeight);
+        ssaoPass.kernelRadius = 8;
+        ssaoPass.minDistance = 0.005;
+        ssaoPass.maxDistance = 0.1;
+        composer.addPass(ssaoPass);
+
+        const outputPass = new OutputPass();
+        composer.addPass(outputPass);
+
+        // Track loaded model for cleanup
+        let currentModel = null;
+
+        // Load GLB model
+        const loader = new GLTFLoader();
+
+        function loadModel(url, name = 'model') {
+            statusEl.textContent = `Loading ${name}...`;
+
+            // Remove previous model
+            if (currentModel) {
+                scene.remove(currentModel);
+                currentModel.traverse((child) => {
+                    if (child.geometry) child.geometry.dispose();
+                    if (child.material) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(m => m.dispose());
+                        } else {
+                            child.material.dispose();
+                        }
+                    }
+                });
+            }
+
+            loader.load(
+                url,
+                (gltf) => {
+                    currentModel = gltf.scene;
+
+                    // Enable shadows on all meshes
+                    currentModel.traverse((child) => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+
+                    // Center and scale model
+                    const box = new THREE.Box3().setFromObject(currentModel);
+                    const center = box.getCenter(new THREE.Vector3());
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 2 / maxDim;
+
+                    currentModel.position.sub(center);
+                    currentModel.position.y += size.y * scale / 2;
+                    currentModel.scale.setScalar(scale);
+
+                    scene.add(currentModel);
+
+                    // Adjust camera
+                    camera.position.set(3, 2, 3);
+                    controls.target.set(0, size.y * scale / 2, 0);
+                    controls.update();
+
+                    statusEl.textContent = `Loaded: ${name}`;
+                },
+                (progress) => {
+                    const percent = (progress.loaded / progress.total * 100).toFixed(0);
+                    statusEl.textContent = `Loading ${name}... ${percent}%`;
+                },
+                (error) => {
+                    console.error('Error loading model:', error);
+                    statusEl.textContent = `Error loading ${name}`;
+                }
+            );
+        }
+
+        // Create default test objects if no model loaded
+        function createTestScene() {
+            const group = new THREE.Group();
+
+            // Box
+            const boxGeo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+            const boxMat = new THREE.MeshStandardMaterial({ color: 0xcc8866, roughness: 0.7 });
+            const box = new THREE.Mesh(boxGeo, boxMat);
+            box.position.set(-0.7, 0.4, 0);
+            box.castShadow = true;
+            box.receiveShadow = true;
+            group.add(box);
+
+            // Sphere
+            const sphereGeo = new THREE.SphereGeometry(0.5, 32, 32);
+            const sphereMat = new THREE.MeshStandardMaterial({ color: 0x6688cc, roughness: 0.3 });
+            const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+            sphere.position.set(0.7, 0.5, 0);
+            sphere.castShadow = true;
+            sphere.receiveShadow = true;
+            group.add(sphere);
+
+            // Torus
+            const torusGeo = new THREE.TorusGeometry(0.4, 0.15, 16, 48);
+            const torusMat = new THREE.MeshStandardMaterial({ color: 0x88cc66, roughness: 0.5 });
+            const torus = new THREE.Mesh(torusGeo, torusMat);
+            torus.position.set(0, 0.5, 0.8);
+            torus.rotation.x = Math.PI / 2;
+            torus.castShadow = true;
+            torus.receiveShadow = true;
+            group.add(torus);
+
+            currentModel = group;
+            scene.add(group);
+            statusEl.textContent = 'Default test scene loaded. Upload a GLB to test.';
+        }
+
+        // Initialize with test scene
+        createTestScene();
+
+        // UI Controls
+        const ssaoEnabledEl = document.getElementById('ssaoEnabled');
+        const kernelRadiusEl = document.getElementById('kernelRadius');
+        const minDistanceEl = document.getElementById('minDistance');
+        const maxDistanceEl = document.getElementById('maxDistance');
+        const ssaoOutputEl = document.getElementById('ssaoOutput');
+        const autoRotateEl = document.getElementById('autoRotate');
+        const bgColorEl = document.getElementById('bgColor');
+        const uploadZoneEl = document.getElementById('uploadZone');
+        const modelInputEl = document.getElementById('modelInput');
+
+        // SSAO controls
+        ssaoEnabledEl.addEventListener('change', (e) => {
+            ssaoPass.enabled = e.target.checked;
+        });
+
+        kernelRadiusEl.addEventListener('input', (e) => {
+            ssaoPass.kernelRadius = parseFloat(e.target.value);
+            document.getElementById('kernelRadiusVal').textContent = e.target.value;
+        });
+
+        minDistanceEl.addEventListener('input', (e) => {
+            ssaoPass.minDistance = parseFloat(e.target.value);
+            document.getElementById('minDistanceVal').textContent = e.target.value;
+        });
+
+        maxDistanceEl.addEventListener('input', (e) => {
+            ssaoPass.maxDistance = parseFloat(e.target.value);
+            document.getElementById('maxDistanceVal').textContent = e.target.value;
+        });
+
+        ssaoOutputEl.addEventListener('change', (e) => {
+            const outputs = {
+                'default': SSAOPass.OUTPUT.Default,
+                'ssao': SSAOPass.OUTPUT.SSAO,
+                'blur': SSAOPass.OUTPUT.Blur,
+                'depth': SSAOPass.OUTPUT.Depth,
+                'normal': SSAOPass.OUTPUT.Normal
+            };
+            ssaoPass.output = outputs[e.target.value];
+        });
+
+        // Scene controls
+        autoRotateEl.addEventListener('change', (e) => {
+            controls.autoRotate = e.target.checked;
+        });
+
+        bgColorEl.addEventListener('change', (e) => {
+            scene.background = new THREE.Color(e.target.value);
+        });
+
+        // File upload
+        uploadZoneEl.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZoneEl.style.borderColor = '#888';
+        });
+
+        uploadZoneEl.addEventListener('dragleave', () => {
+            uploadZoneEl.style.borderColor = '#444';
+        });
+
+        uploadZoneEl.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZoneEl.style.borderColor = '#444';
+            const file = e.dataTransfer.files[0];
+            if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
+                const url = URL.createObjectURL(file);
+                loadModel(url, file.name);
+            }
+        });
+
+        modelInputEl.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                loadModel(url, file.name);
+            }
+        });
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+            ssaoPass.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            composer.render();
+        }
+
+        animate();
+    </script>
+</body>
+</html>

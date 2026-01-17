@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Viewer Sandbox</title>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            background: #f7f5ee;
+        }
+        h1 { font-size: 14px; margin-bottom: 12px; padding: 20px 20px 0; }
+        h2 { font-size: 12px; margin: 20px 0 10px; }
+
+        .viewer-container {
+            position: relative;
+            width: 100vw;
+            margin-bottom: 24px;
+        }
+
+        model-viewer {
+            width: 100%;
+            height: 85vh;
+            background-color: transparent;
+            --poster-color: transparent;
+        }
+
+        .controls {
+            margin-top: 12px;
+            padding: 0 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .controls label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .controls input[type="range"] {
+            width: 100px;
+        }
+
+        .stats {
+            margin-top: 12px;
+            padding: 8px 20px;
+            background: transparent;
+            border-top: 1px solid #d8d2c6;
+            font-size: 10px;
+            line-height: 1.6;
+        }
+
+        .notes {
+            margin: 20px 20px 20px;
+            padding: 16px;
+            background: transparent;
+            border: 1px solid #d8d2c6;
+        }
+
+        .notes h2 { margin-top: 0; }
+        .notes ul { margin-left: 20px; margin-top: 8px; }
+        .notes li { margin-bottom: 4px; }
+        .notes code { background: #f0f0f0; padding: 2px 4px; }
+
+        .viewer-container {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .viewer-container.dragover model-viewer {
+            outline: 2px dashed #1f1f1f;
+            outline-offset: -2px;
+        }
+
+        .viewer-container.dragover::after {
+            content: 'Drop GLB here';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.9);
+            padding: 12px 24px;
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        .file-input-hidden { display: none; }
+
+        .current-file {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 8px;
+            padding: 0 20px;
+        }
+
+        .current-file strong { color: #1f1f1f; }
+    </style>
+</head>
+<body>
+    <h1>Model Viewer Sandbox</h1>
+    <div class="current-file" id="currentFile">Drag & drop a GLB onto the viewer, or <label for="fileInput" style="text-decoration:underline;cursor:pointer">browse</label></div>
+    <input type="file" id="fileInput" class="file-input-hidden" accept=".glb">
+
+    <div class="viewer-container" id="viewerContainer">
+        <model-viewer
+            id="viewer-main"
+            src="../model1.glb"
+            alt="Model viewer"
+            camera-controls
+            auto-rotate
+            shadow-intensity="1"
+            exposure="1">
+        </model-viewer>
+        <div class="controls">
+            <label>
+                Exposure:
+                <input type="range" id="exposure" min="0" max="5" step="0.1" value="1">
+                <span id="exposure-val">1</span>
+            </label>
+            <label>
+                Shadow:
+                <input type="range" id="shadow" min="0" max="5" step="0.1" value="1">
+                <span id="shadow-val">1</span>
+            </label>
+            <label>
+                Shadow Softness:
+                <input type="range" id="softness" min="0" max="1" step="0.1" value="1">
+                <span id="softness-val">1</span>
+            </label>
+            <label>
+                Tone Mapping:
+                <select id="tone-mapping">
+                    <option value="commerce">Commerce</option>
+                    <option value="neutral">Neutral</option>
+                    <option value="aces">ACES</option>
+                    <option value="agx">AgX</option>
+                </select>
+            </label>
+            <label>
+                Field of View:
+                <input type="range" id="fov" min="10" max="90" step="1" value="30">
+                <span id="fov-val">30</span>°
+            </label>
+            <label>
+                Rotation Speed:
+                <input type="range" id="rotation-speed" min="0" max="60" step="5" value="30">
+                <span id="rotation-speed-val">30</span>°/s
+            </label>
+            <label>
+                <input type="checkbox" id="auto-rotate" checked>
+                Auto Rotate
+            </label>
+            <label>
+                Environment:
+                <select id="environment">
+                    <option value="">Default (neutral)</option>
+                    <option value="legacy">Legacy</option>
+                    <option value="neutral">Neutral</option>
+                    <option value="https://modelviewer.dev/shared-assets/environments/spruit_sunrise_1k_HDR.hdr">Sunrise HDR</option>
+                    <option value="https://modelviewer.dev/shared-assets/environments/aircraft_workshop_01_1k.hdr">Workshop HDR</option>
+                    <option value="https://modelviewer.dev/shared-assets/environments/moon_1k.hdr">Moon HDR</option>
+                </select>
+            </label>
+        </div>
+        <div class="stats" id="stats-main">Drop a GLB file above or loading default...</div>
+    </div>
+
+    <div class="notes">
+        <h2>Model-Viewer Settings Reference</h2>
+        <ul>
+            <li><code>exposure</code> - Brightness (no hard limit, 1 = default)</li>
+            <li><code>shadow-intensity</code> - Shadow darkness (0 = none, higher = darker)</li>
+            <li><code>shadow-softness</code> - Shadow blur (0 = sharp, 1 = soft)</li>
+            <li><code>tone-mapping</code> - Color rendering: commerce, neutral, aces, agx</li>
+            <li><code>field-of-view</code> - Camera FOV in degrees (default ~30°)</li>
+            <li><code>environment-image</code> - HDR lighting environment</li>
+            <li><code>skybox-image</code> - Visible background environment</li>
+            <li><code>rotation-per-second</code> - Auto-rotate speed in degrees</li>
+        </ul>
+    </div>
+
+    <script>
+        const viewer = document.getElementById('viewer-main');
+        const statsEl = document.getElementById('stats-main');
+        const fileInput = document.getElementById('fileInput');
+        const currentFileDiv = document.getElementById('currentFile');
+
+        // Update stats when model loads
+        function updateStats(filename, fileSize) {
+            const sizeKB = fileSize ? (fileSize / 1024).toFixed(1) : 'Unknown';
+            const sizeMB = fileSize ? (fileSize / 1024 / 1024).toFixed(2) : 'Unknown';
+
+            statsEl.innerHTML = `
+                <strong>File:</strong> ${filename}<br>
+                <strong>Size:</strong> ${sizeKB} KB (${sizeMB} MB)<br>
+                <strong>Exposure:</strong> ${viewer.exposure}<br>
+                <strong>Shadow:</strong> ${viewer.shadowIntensity}<br>
+                <strong>Tone:</strong> ${viewer.toneMapping || 'default'}
+            `;
+        }
+
+        // Load default model stats
+        viewer.addEventListener('load', async () => {
+            try {
+                const response = await fetch(viewer.src, { method: 'HEAD' });
+                const size = response.headers.get('content-length');
+                updateStats(viewer.src.split('/').pop(), parseInt(size));
+            } catch (e) {
+                updateStats(viewer.src.split('/').pop(), null);
+            }
+        });
+
+        // Interactive controls
+        document.getElementById('exposure').addEventListener('input', (e) => {
+            viewer.setAttribute('exposure', e.target.value);
+            document.getElementById('exposure-val').textContent = e.target.value;
+        });
+
+        document.getElementById('shadow').addEventListener('input', (e) => {
+            viewer.setAttribute('shadow-intensity', e.target.value);
+            document.getElementById('shadow-val').textContent = e.target.value;
+        });
+
+        document.getElementById('softness').addEventListener('input', (e) => {
+            viewer.setAttribute('shadow-softness', e.target.value);
+            document.getElementById('softness-val').textContent = e.target.value;
+        });
+
+        document.getElementById('tone-mapping').addEventListener('change', (e) => {
+            viewer.setAttribute('tone-mapping', e.target.value);
+        });
+
+        document.getElementById('fov').addEventListener('input', (e) => {
+            viewer.fieldOfView = e.target.value + 'deg';
+            document.getElementById('fov-val').textContent = e.target.value;
+        });
+
+        document.getElementById('rotation-speed').addEventListener('input', (e) => {
+            viewer.rotationPerSecond = e.target.value + 'deg';
+            document.getElementById('rotation-speed-val').textContent = e.target.value;
+        });
+
+        document.getElementById('auto-rotate').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                viewer.setAttribute('auto-rotate', '');
+            } else {
+                viewer.removeAttribute('auto-rotate');
+            }
+        });
+
+        document.getElementById('environment').addEventListener('change', (e) => {
+            if (e.target.value) {
+                viewer.setAttribute('environment-image', e.target.value);
+            } else {
+                viewer.removeAttribute('environment-image');
+            }
+        });
+
+        // Drag and drop on viewer container
+        const viewerContainer = document.getElementById('viewerContainer');
+
+        viewerContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            viewerContainer.classList.add('dragover');
+        });
+
+        viewerContainer.addEventListener('dragleave', (e) => {
+            // Only remove if leaving the container entirely
+            if (!viewerContainer.contains(e.relatedTarget)) {
+                viewerContainer.classList.remove('dragover');
+            }
+        });
+
+        viewerContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            viewerContainer.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.glb')) {
+                loadModelFile(file);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                loadModelFile(file);
+            }
+        });
+
+        function loadModelFile(file) {
+            const url = URL.createObjectURL(file);
+            viewer.src = url;
+
+            currentFileDiv.innerHTML = `<strong>Loaded:</strong> ${file.name}`;
+
+            viewer.addEventListener('load', () => {
+                updateStats(file.name, file.size);
+            }, { once: true });
+        }
+    </script>
+</body>
+</html>

@@ -54,6 +54,12 @@ function createProductCard(product) {
 
   article.innerHTML = `
     <div class="model-viewer-container">
+      <div class="model-loading-spinner">
+        <svg viewBox="0 0 36 36">
+          <circle class="spinner-track" cx="18" cy="18" r="16"></circle>
+          <circle class="spinner-progress" cx="18" cy="18" r="16"></circle>
+        </svg>
+      </div>
       <model-viewer
         data-model="${product.model}"
         alt="${product.name}"
@@ -67,7 +73,13 @@ function createProductCard(product) {
       </model-viewer>
     </div>
     <div class="model-info">
-      <a href="project${product.id}.html" class="model-name">${product.name}</a>
+      <div class="model-info-left">
+        <a href="project${product.id}.html" class="model-name">${product.name}</a>
+        <div class="model-specs">
+          <span class="model-materials">${product.medium}</span>
+          <span class="model-dimensions">${product.dimensions}</span>
+        </div>
+      </div>
       <span class="model-price">$${product.price}</span>
     </div>
   `;
@@ -122,6 +134,24 @@ async function loadProductDetail(productId) {
         .join('');
     }
 
+    // Add buy button
+    const buyButtonContainer = document.querySelector('.buy-button-container');
+    if (buyButtonContainer) {
+      if (product.checkoutUrl) {
+        buyButtonContainer.innerHTML = `
+          <a href="${product.checkoutUrl}" class="buy-button" target="_blank">
+            Buy Plan — $${product.price}
+          </a>
+        `;
+      } else {
+        buyButtonContainer.innerHTML = `
+          <span class="buy-button buy-button-disabled">
+            Coming Soon — $${product.price}
+          </span>
+        `;
+      }
+    }
+
     console.log(`Loaded product detail for: ${product.name}`);
 
   } catch (error) {
@@ -146,9 +176,13 @@ function updateDetailRow(label, value) {
   }
 }
 
-// Load products when page is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadProducts);
-} else {
-  loadProducts();
+// Load products when page is ready (only on index pages with a grid)
+const isDetailPage = document.body.classList.contains('project-detail-page');
+
+if (!isDetailPage) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadProducts);
+  } else {
+    loadProducts();
+  }
 }
