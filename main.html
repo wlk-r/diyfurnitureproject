@@ -10,10 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
     <!-- Import the Model Viewer library -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
-    <!-- Product Loader (loads products from JSON) -->
-    <script src="product-loader.js" defer></script>
-    <!-- Protected Model Loader -->
+    <!-- Protected Model Loader (must load before product-loader) -->
     <script src="model-loader.js" defer></script>
+    <!-- Product Loader (loads products from JSON, calls loadProtectedModels) -->
+    <script src="product-loader.js" defer></script>
 </head>
 <body>
     <div class="page-grid">

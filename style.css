@@ -464,6 +464,11 @@ model-viewer {
     --poster-color: transparent;
 }
 
+/* Hide fullbleed model-viewer until materials ready */
+.fullbleed-viewer model-viewer[data-model]:not(.materials-ready) {
+    opacity: 0;
+}
+
 /* Project info overlay (upper left) */
 .project-info-overlay {
     position: relative;

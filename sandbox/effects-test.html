@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Viewer Effects Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            padding: 20px;
+        }
+        .viewer-container {
+            flex: 1;
+            background: #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 600px;
+        }
+        model-viewer {
+            width: 100%;
+            height: 100%;
+            min-height: 600px;
+            background: #333;
+        }
+        .controls {
+            width: 300px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+        h1 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
+        }
+        .effect-group {
+            margin-bottom: 20px;
+        }
+        .effect-group h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        .effect-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+        }
+        .effect-row label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .effect-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .effect-row input[type="range"] {
+            width: 100px;
+        }
+        .effect-row input[type="number"] {
+            width: 60px;
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .param-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 0 4px 28px;
+            font-size: 13px;
+            color: #aaa;
+        }
+        .param-row label {
+            min-width: 140px;
+        }
+        .param-row input[type="text"] {
+            flex: 1;
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .param-row input[type="text"]:focus {
+            outline: none;
+            border-color: #888;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #333;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        /* Hidden material source viewer */
+        #materialSourceViewer {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            opacity: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
+    <!-- Import map to resolve Three.js for effects library -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.166.0/build/three.module.js",
+            "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.166.0/examples/jsm/"
+        }
+    }
+    </script>
+    <!-- Model Viewer -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <!-- Model Viewer Effects addon -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects/dist/model-viewer-effects.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="viewer-container">
+            <model-viewer
+                id="effectsViewer"
+                camera-controls
+                touch-action="pan-y"
+                shadow-intensity="1"
+                exposure="1"
+                alt="Workbench 3D Model">
+
+                <effect-composer render-mode="quality">
+                    <ssao-effect
+                        blend-mode="default"
+                        intensity="3"
+                        samples="16"
+                        rings="7"
+                        radius="0.5"
+                        bias="0.025"
+                        fade="0.02"
+                        luminance-influence="0.5"
+                        world-distance-threshold="50"
+                        world-distance-falloff="5"
+                        world-proximity-threshold="1"
+                        world-proximity-falloff="0.5"
+                        min-radius-scale="0.33"
+                        depth-aware-upsampling="true">
+                    </ssao-effect>
+
+                    <bloom-effect
+                        blend-mode="skip"
+                        intensity="1"
+                        luminance-threshold="0.8"
+                        luminance-smoothing="0.3"
+                        mip-map-blur="true">
+                    </bloom-effect>
+
+                    <smaa-effect blend-mode="default"></smaa-effect>
+
+                    <color-grade-effect
+                        blend-mode="skip"
+                        brightness="0"
+                        contrast="0"
+                        saturation="0">
+                    </color-grade-effect>
+
+                    <outline-effect
+                        blend-mode="skip"
+                        edge-strength="2.5"
+                        pulse-speed="0"
+                        visible-edge-color="#ffffff"
+                        hidden-edge-color="#22090a"
+                        x-ray="true">
+                    </outline-effect>
+
+                    <glitch-effect blend-mode="skip"></glitch-effect>
+
+                    <pixelate-effect
+                        blend-mode="skip"
+                        granularity="6">
+                    </pixelate-effect>
+                </effect-composer>
+            </model-viewer>
+        </div>
+
+        <div class="controls">
+            <h1>Post-Processing Effects</h1>
+
+            <div class="effect-group">
+                <h3>Recommended Effects</h3>
+
+                <div class="effect-row">
+                    <label>
+                        <input type="checkbox" id="ssao" checked>
+                        SSAO (Ambient Occlusion)
+                    </label>
+                </div>
+                <div class="param-row">
+                    <label>intensity:</label>
+                    <input type="text" id="ssao-intensity" value="3">
+                </div>
+                <div class="param-row">
+                    <label>radius:</label>
+                    <input type="text" id="ssao-radius" value="0.5">
+                </div>
+                <div class="param-row">
+                    <label>samples:</label>
+                    <input type="text" id="ssao-samples" value="16">
+                </div>
+                <div class="param-row">
+                    <label>rings:</label>
+                    <input type="text" id="ssao-rings" value="7">
+                </div>
+                <div class="param-row">
+                    <label>bias:</label>
+                    <input type="text" id="ssao-bias" value="0.025">
+                </div>
+                <div class="param-row">
+                    <label>fade:</label>
+                    <input type="text" id="ssao-fade" value="0.02">
+                </div>
+                <div class="param-row">
+                    <label>luminance-influence:</label>
+                    <input type="text" id="ssao-luminance" value="0.5">
+                </div>
+                <div class="param-row">
+                    <label>world-distance-threshold:</label>
+                    <input type="text" id="ssao-distance-threshold" value="50">
+                </div>
+                <div class="param-row">
+                    <label>world-proximity-threshold:</label>
+                    <input type="text" id="ssao-proximity-threshold" value="1">
+                </div>
+                <div class="param-row">
+                    <label>min-radius-scale:</label>
+                    <input type="text" id="ssao-min-radius" value="0.33">
+                </div>
+
+                <div class="effect-row">
+                    <label>
+                        <input type="checkbox" id="smaa" checked>
+                        SMAA (Anti-aliasing)
+                    </label>
+                </div>
+
+                <div class="effect-row">
+                    <label>
+                        <input type="checkbox" id="bloom">
+                        Bloom
+                    </label>
+                </div>
+                <div class="param-row">
+                    <label>intensity:</label>
+                    <input type="text" id="bloom-intensity" value="1">
+                </div>
+                <div class="param-row">
+                    <label>luminance-threshold:</label>
+                    <input type="text" id="bloom-threshold" value="0.9">
+                </div>
+                <div class="param-row">
+                    <label>luminance-smoothing:</label>
+                    <input type="text" id="bloom-smoothing" value="0.3">
+                </div>
+            </div>
+
+            <div class="effect-group">
+                <h3>Color Adjustments</h3>
+
+                <div class="effect-row">
+                    <label>
+                        <input type="checkbox" id="colorgrade">
+                        Color Grade
+                    </label>
+                </div>
+                <div class="param-row">
+                    <label>brightness:</label>
+                    <input type="text" id="cg-brightness" value="0">
+                </div>
+                <div class="param-row">
+                    <label>contrast:</label>
+                    <input type="text" id="cg-contrast" value="0">
+                </div>
+                <div class="param-row">
+                    <label>saturation:</label>
+                    <input type="text" id="cg-saturation" value="0">
+                </div>
+            </div>
+
+            <div class="effect-group">
+                <h3>Special Effects</h3>
+
+                <div class="effect-row">
+                    <label>
+                        <input type="checkbox" id="outline">
+                        Outline
+                    </label>
+                </div>
+                <div class="param-row">
+                    <label>edge-strength:</label>
+                    <input type="text" id="outline-edge-strength" value="2.5">
+                </div>
+                <div class="param-row">
+                    <label>pulse-speed:</label>
+                    <input type="text" id="outline-pulse-speed" value="0">
+                </div>
+                <div class="param-row">
+                    <label>visible-edge-color:</label>
+                    <input type="text" id="outline-visible-color" value="#ffffff">
+                </div>
+                <div class="param-row">
+                    <label>hidden-edge-color:</label>
+                    <input type="text" id="outline-hidden-color" value="#22090a">
+                </div>
+                <div class="param-row">
+                    <label>x-ray:</label>
+                    <input type="text" id="outline-xray" value="true">
+                </div>
+
+                <div class="effect-row">
+                    <label>
+                        <input type="checkbox" id="glitch">
+                        Glitch
+                    </label>
+                </div>
+
+                <div class="effect-row">
+                    <label>
+                        <input type="checkbox" id="pixelate">
+                        Pixelate
+                    </label>
+                </div>
+                <div class="param-row">
+                    <label>granularity:</label>
+                    <input type="text" id="pixelate-granularity" value="6">
+                </div>
+            </div>
+
+            <div class="status" id="status">Loading model...</div>
+        </div>
+    </div>
+
+    <!-- Hidden material source viewer -->
+    <model-viewer id="materialSourceViewer"></model-viewer>
+
+    <script type="module">
+        const viewer = document.getElementById('effectsViewer');
+        const materialSourceViewer = document.getElementById('materialSourceViewer');
+        const status = document.getElementById('status');
+
+        // Material system
+        let sourceMaterials = {};
+
+        function log(msg) {
+            console.log(msg);
+            status.textContent = msg + '\n' + status.textContent;
+        }
+
+        function getThreeScene(viewer) {
+            const symbols = Object.getOwnPropertySymbols(viewer);
+            const sceneSymbol = symbols.find(s => s.description === 'scene');
+            return sceneSymbol ? viewer[sceneSymbol] : null;
+        }
+
+        function extractMaterials(viewer) {
+            const scene = getThreeScene(viewer);
+            if (!scene) return {};
+
+            const materials = {};
+            scene.traverse((node) => {
+                if (node.isMesh && node.material) {
+                    const mat = node.material;
+                    const name = (mat.name || '').toLowerCase();
+                    if (name && !materials[name]) {
+                        materials[name] = mat;
+                        log(`[MATERIALS] Extracted: ${name}`);
+                    }
+                }
+            });
+            return materials;
+        }
+
+        function applyMaterials(viewer) {
+            const scene = getThreeScene(viewer);
+            if (!scene) return [];
+
+            const applied = [];
+            scene.traverse((node) => {
+                if (node.isMesh && node.material) {
+                    const name = (node.material.name || '').toLowerCase();
+                    if (sourceMaterials[name]) {
+                        node.material = sourceMaterials[name].clone();
+                        node.material.name = name;
+                        node.material.needsUpdate = true;
+                        if (!applied.includes(name)) applied.push(name);
+                    }
+                }
+            });
+
+            if (applied.length > 0) {
+                viewer.requestUpdate();
+                log(`[MATERIALS] Applied: ${applied.join(', ')}`);
+            }
+            return applied;
+        }
+
+        // Get effect elements
+        const ssaoEffect = viewer.querySelector('ssao-effect');
+        const bloomEffect = viewer.querySelector('bloom-effect');
+        const smaaEffect = viewer.querySelector('smaa-effect');
+        const colorGradeEffect = viewer.querySelector('color-grade-effect');
+        const outlineEffect = viewer.querySelector('outline-effect');
+        const glitchEffect = viewer.querySelector('glitch-effect');
+        const pixelateEffect = viewer.querySelector('pixelate-effect');
+
+        // Check if effects loaded
+        const effectComposer = viewer.querySelector('effect-composer');
+        if (effectComposer) {
+            log('[EFFECTS] effect-composer found');
+        } else {
+            log('[EFFECTS] WARNING: effect-composer NOT found');
+        }
+
+        // Effect toggle handlers
+        const effectMap = {
+            'ssao': ssaoEffect,
+            'bloom': bloomEffect,
+            'smaa': smaaEffect,
+            'colorgrade': colorGradeEffect,
+            'outline': outlineEffect,
+            'glitch': glitchEffect,
+            'pixelate': pixelateEffect
+        };
+
+        // Log which effects exist
+        Object.keys(effectMap).forEach(id => {
+            if (effectMap[id]) {
+                log(`[EFFECTS] ${id} element found`);
+            } else {
+                log(`[EFFECTS] WARNING: ${id} element NOT found`);
+            }
+        });
+
+        // Toggle effect on/off
+        Object.keys(effectMap).forEach(id => {
+            const checkbox = document.getElementById(id);
+            const effect = effectMap[id];
+
+            if (checkbox && effect) {
+                checkbox.addEventListener('change', () => {
+                    const mode = checkbox.checked ? 'default' : 'skip';
+                    effect.setAttribute('blend-mode', mode);
+                    log(`[EFFECTS] ${id} set to ${mode}`);
+                });
+            }
+        });
+
+        // Helper to update effect attribute and log
+        function updateEffectParam(effect, attr, value) {
+            if (effect) {
+                effect.setAttribute(attr, value);
+                log(`[EFFECTS] ${effect.tagName} ${attr} = ${value}`);
+            }
+        }
+
+        // Bind text input to effect attribute (updates on Enter or blur)
+        function bindParam(inputId, effect, attr) {
+            const input = document.getElementById(inputId);
+            if (!input || !effect) return;
+
+            const update = () => updateEffectParam(effect, attr, input.value);
+
+            input.addEventListener('change', update);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    update();
+                    input.blur();
+                }
+            });
+        }
+
+        // SSAO parameters
+        bindParam('ssao-intensity', ssaoEffect, 'intensity');
+        bindParam('ssao-radius', ssaoEffect, 'radius');
+        bindParam('ssao-samples', ssaoEffect, 'samples');
+        bindParam('ssao-rings', ssaoEffect, 'rings');
+        bindParam('ssao-bias', ssaoEffect, 'bias');
+        bindParam('ssao-fade', ssaoEffect, 'fade');
+        bindParam('ssao-luminance', ssaoEffect, 'luminance-influence');
+        bindParam('ssao-distance-threshold', ssaoEffect, 'world-distance-threshold');
+        bindParam('ssao-proximity-threshold', ssaoEffect, 'world-proximity-threshold');
+        bindParam('ssao-min-radius', ssaoEffect, 'min-radius-scale');
+
+        // Bloom parameters
+        bindParam('bloom-intensity', bloomEffect, 'intensity');
+        bindParam('bloom-threshold', bloomEffect, 'luminance-threshold');
+        bindParam('bloom-smoothing', bloomEffect, 'luminance-smoothing');
+
+        // Color grade parameters
+        bindParam('cg-brightness', colorGradeEffect, 'brightness');
+        bindParam('cg-contrast', colorGradeEffect, 'contrast');
+        bindParam('cg-saturation', colorGradeEffect, 'saturation');
+
+        // Outline parameters
+        bindParam('outline-edge-strength', outlineEffect, 'edge-strength');
+        bindParam('outline-pulse-speed', outlineEffect, 'pulse-speed');
+        bindParam('outline-visible-color', outlineEffect, 'visible-edge-color');
+        bindParam('outline-hidden-color', outlineEffect, 'hidden-edge-color');
+        bindParam('outline-xray', outlineEffect, 'x-ray');
+
+        // Pixelate parameters
+        bindParam('pixelate-granularity', pixelateEffect, 'granularity');
+
+        // Initialize: Load material source, then target model
+        async function init() {
+            log('[INIT] Starting...');
+
+            // Load material source
+            log('[MATERIALS] Loading source...');
+
+            await new Promise((resolve) => {
+                const timeout = setTimeout(() => {
+                    log('[MATERIALS] Source load timed out');
+                    resolve();
+                }, 10000);
+
+                materialSourceViewer.addEventListener('load', () => {
+                    clearTimeout(timeout);
+                    sourceMaterials = extractMaterials(materialSourceViewer);
+                    log(`[MATERIALS] Source ready with ${Object.keys(sourceMaterials).length} materials`);
+                    resolve();
+                }, { once: true });
+
+                materialSourceViewer.addEventListener('error', (e) => {
+                    clearTimeout(timeout);
+                    log('[MATERIALS] Source load error');
+                    resolve();
+                }, { once: true });
+
+                materialSourceViewer.setAttribute('src', '../materials/plywood-00/plywood-00.gltf');
+            });
+
+            // Load target model
+            log('[MODEL] Loading target model...');
+
+            viewer.addEventListener('load', () => {
+                log('[MODEL] Target loaded');
+                applyMaterials(viewer);
+                log('[INIT] Complete - ready for effects testing');
+            }, { once: true });
+
+            viewer.addEventListener('error', (e) => {
+                log('[MODEL] Error: ' + (e.detail?.message || 'unknown'));
+            }, { once: true });
+
+            viewer.setAttribute('src', '../models/workbench-test file-nomaterials.glb');
+        }
+
+        // Wait for custom elements to be defined
+        await customElements.whenDefined('model-viewer');
+        log('[INIT] model-viewer defined');
+
+        init();
+    </script>
+</body>
+</html>

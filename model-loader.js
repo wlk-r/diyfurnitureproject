@@ -230,6 +230,9 @@ async function loadSingleModel(viewer, useDelay = false) {
   if (!modelName) return;
   if (viewer.id === 'material-source-viewer') return;
 
+  // Hide viewer until materials are applied (CSS handles this via materials-ready class)
+  viewer.style.opacity = '0';
+
   try {
     updateSpinnerProgress(viewer, 10);
 
@@ -237,48 +240,39 @@ async function loadSingleModel(viewer, useDelay = false) {
     const signedUrl = await getSignedModelUrl(modelName);
     updateSpinnerProgress(viewer, 30);
 
-    // Create a promise that resolves when model is loaded (with timeout)
-    const loadPromise = new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        console.warn(`[MATERIALS] Model load timed out: ${modelName}`);
-        resolve([]);
-      }, 15000);
-
-      viewer.addEventListener('load', () => {
-        clearTimeout(timeout);
-        console.log(`[MATERIALS] Model loaded: ${modelName}`);
-        // Apply materials if any match
-        const applied = applyMaterialsToViewer(viewer);
-        resolve(applied);
-      }, { once: true });
-
-      viewer.addEventListener('error', (e) => {
-        clearTimeout(timeout);
-        console.error(`[MATERIALS] Model load error: ${modelName}`, e);
-        reject(e);
-      }, { once: true });
-    });
-
     // Set src to start loading
     viewer.setAttribute('src', signedUrl);
     updateSpinnerProgress(viewer, 50);
 
-    // Wait for load and material application to complete
-    const appliedMaterials = await loadPromise;
-    updateSpinnerProgress(viewer, 80);
-    console.log(`[MATERIALS] Applied to ${modelName}:`, appliedMaterials);
+    // Poll for model to be ready (more reliable than load event)
+    let appliedMaterials = [];
+    const maxWait = 10000;
+    const pollInterval = 50;
+    let waited = 0;
 
-    // Only use delay if materials were applied (or if explicitly requested)
-    const hasMaterials = appliedMaterials && Array.isArray(appliedMaterials) && appliedMaterials.length > 0;
-    if (hasMaterials || useDelay) {
-      console.log(`[MATERIALS] Using delay for ${modelName} (hasMaterials: ${hasMaterials}, useDelay: ${useDelay})`);
-      updateSpinnerProgress(viewer, 90);
-      await new Promise(resolve => setTimeout(resolve, 1200));
+    while (waited < maxWait) {
+      if (viewer.model) {
+        console.log(`[MATERIALS] Model ready after ${waited}ms: ${modelName}`);
+        appliedMaterials = applyMaterialsToViewer(viewer);
+        break;
+      }
+      await new Promise(resolve => setTimeout(resolve, pollInterval));
+      waited += pollInterval;
     }
+
+    if (!viewer.model) {
+      console.warn(`[MATERIALS] Model not ready after ${maxWait}ms: ${modelName}`);
+    }
+
+    updateSpinnerProgress(viewer, 70);
+
+    updateSpinnerProgress(viewer, 90);
+    console.log(`[MATERIALS] Applied to ${modelName}:`, appliedMaterials);
 
     updateSpinnerProgress(viewer, 100);
 
     // Reveal the model
+    viewer.style.opacity = '1';
     viewer.classList.add('materials-ready');
 
     // Fade out spinner if present
@@ -292,6 +286,7 @@ async function loadSingleModel(viewer, useDelay = false) {
 
   } catch (error) {
     console.error(`Error loading model ${modelName}:`, error);
+    viewer.style.opacity = '1';
     viewer.classList.add('materials-ready');
     const spinner = viewer.parentElement?.querySelector('.model-loading-spinner');
     if (spinner) spinner.remove();
