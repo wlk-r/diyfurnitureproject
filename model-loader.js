@@ -15,7 +15,8 @@ const MATERIALS_LOCAL_PATH = './materials';
 
 // Material sources - path within materials bucket/folder
 const MATERIAL_SOURCES = {
-  'plywood': 'plywood-00/plywood-00.gltf'
+  'plywood': 'plywood-00/plywood-00.gltf',
+  'fabric': 'fabric-00/weave-00.gltf'
 };
 const DEFAULT_MATERIAL = 'plywood';
 
@@ -72,32 +73,6 @@ function getThreeScene(viewer) {
   return sceneSymbol ? viewer[sceneSymbol] : null;
 }
 
-/**
- * Extract materials from the source material viewer
- */
-function extractSourceMaterials() {
-  if (!materialSourceViewer || !materialSourceViewer.model) return;
-
-  const scene = getThreeScene(materialSourceViewer);
-  if (!scene) {
-    console.warn('[MATERIALS] Could not access Three.js scene');
-    return;
-  }
-
-  scene.traverse((node) => {
-    if (node.isMesh && node.material) {
-      const mat = node.material;
-      const name = (mat.name || '').toLowerCase();
-      if (name && !sourceMaterials[name]) {
-        sourceMaterials[name] = mat;
-        console.log(`[MATERIALS] Extracted: ${name}`);
-      }
-    }
-  });
-
-  materialSourceReady = Object.keys(sourceMaterials).length > 0;
-  console.log(`[MATERIALS] Source ready with ${Object.keys(sourceMaterials).length} materials:`, Object.keys(sourceMaterials));
-}
 
 /**
  * Apply source materials to a target model-viewer
@@ -137,39 +112,78 @@ async function applyMaterialsToViewer(viewer) {
 }
 
 /**
- * Create material source viewer and load materials
- * Optimized for fast loading
+ * Load a single material source and extract its materials
+ */
+async function loadMaterialSource(name, url) {
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0.01;pointer-events:none;';
+  container.innerHTML = `<model-viewer id="material-source-${name}" style="width:1px;height:1px;"></model-viewer>`;
+  document.body.appendChild(container);
+
+  const viewer = container.querySelector('model-viewer');
+  console.log(`[MATERIALS] Loading ${name} from: ${url}`);
+  viewer.setAttribute('src', url);
+
+  // Poll for model ready
+  const maxWait = 15000;
+  const start = Date.now();
+  while (Date.now() - start < maxWait) {
+    if (viewer.model) {
+      extractSourceMaterialsFromViewer(viewer, name);
+      return true;
+    }
+    await new Promise(r => setTimeout(r, 50));
+  }
+
+  console.warn(`[MATERIALS] Timeout loading ${name}`);
+  return false;
+}
+
+/**
+ * Extract materials from a specific viewer
+ */
+function extractSourceMaterialsFromViewer(viewer, sourceName) {
+  const scene = getThreeScene(viewer);
+  if (!scene) {
+    console.warn(`[MATERIALS] Could not access Three.js scene for ${sourceName}`);
+    return;
+  }
+
+  scene.traverse((node) => {
+    if (node.isMesh && node.material) {
+      const mat = node.material;
+      const name = (mat.name || '').toLowerCase();
+      if (name && !sourceMaterials[name]) {
+        sourceMaterials[name] = mat;
+        console.log(`[MATERIALS] Extracted: ${name} (from ${sourceName})`);
+      }
+    }
+  });
+}
+
+/**
+ * Create material source viewers and load all materials
+ * Loads all material sources in parallel for speed
  */
 async function initMaterialSource() {
   if (materialSourceReady) {
     return true;
   }
 
-  const container = document.createElement('div');
-  container.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0.01;pointer-events:none;';
-  container.innerHTML = `<model-viewer id="material-source-viewer" style="width:1px;height:1px;"></model-viewer>`;
-  document.body.appendChild(container);
-
-  materialSourceViewer = container.querySelector('model-viewer');
   const baseUrl = getMaterialsBaseUrl();
-  const sourceUrl = `${baseUrl}/${MATERIAL_SOURCES[DEFAULT_MATERIAL]}`;
 
-  console.log(`[MATERIALS] Loading material source from: ${sourceUrl}`);
-  materialSourceViewer.setAttribute('src', sourceUrl);
+  // Load all material sources in parallel
+  const loadPromises = Object.entries(MATERIAL_SOURCES).map(([name, path]) => {
+    const url = `${baseUrl}/${path}`;
+    return loadMaterialSource(name, url);
+  });
 
-  // Poll for model ready (increased timeout for network latency)
-  const maxWait = 15000;
-  const start = Date.now();
-  while (Date.now() - start < maxWait) {
-    if (materialSourceViewer.model) {
-      extractSourceMaterials();
-      return materialSourceReady;
-    }
-    await new Promise(r => setTimeout(r, 50));
-  }
+  await Promise.all(loadPromises);
 
-  console.warn('[MATERIALS] Timeout waiting for material source to load');
-  return false;
+  materialSourceReady = Object.keys(sourceMaterials).length > 0;
+  console.log(`[MATERIALS] All sources loaded. Available materials: ${Object.keys(sourceMaterials).join(', ')}`);
+
+  return materialSourceReady;
 }
 
 /**
