@@ -31,6 +31,21 @@
       ]
     },
     {
+      "id": "7",
+      "name": "Assembly Table",
+      "price": 10,
+      "model": "assembly-00.glb",
+      "year": "2025",
+      "medium": "3/4\" pine plywood",
+      "dimensions": "48\"w x 24\"d x 34\"h",
+      "checkoutUrl": "",
+      "shortDescription": "Versatile assembly table for workshop projects. Sturdy construction with plywood materials.",
+      "fullDescription": [
+        "A versatile assembly table designed for workshop use. Features sturdy plywood construction for durability.",
+        "Uses 'plywood-face' and 'plywood-edge' material slots for consistent appearance with other furniture pieces."
+      ]
+    },
+    {
       "id": "1",
       "name": "Work Table",
       "price": 5,
