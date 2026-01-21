@@ -74,7 +74,7 @@ function createProductCard(product) {
     </div>
     <div class="model-info">
       <div class="model-info-left">
-        <a href="project${product.id}.html" class="model-name">${product.name}</a>
+        <a href="project.html?id=${product.id}" class="model-name">${product.name}</a>
         <div class="model-specs">
           <span class="model-materials">${product.medium}</span>
           <span class="model-dimensions">${product.dimensions}</span>

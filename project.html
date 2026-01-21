@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workbench — Walker Nosworthy</title>
+    <title>Loading... — diy furniture project</title>
     <!-- Critical: Hide model until materials ready -->
     <style>
         .model-loading-overlay {
@@ -55,9 +55,16 @@
     <script src="model-loader.js" defer></script>
     <script src="product-loader.js" defer></script>
     <script>
-        // Load product details when page loads
+        // Load product details from URL parameter
         document.addEventListener('DOMContentLoaded', () => {
-            loadProductDetail('5');
+            const params = new URLSearchParams(window.location.search);
+            const productId = params.get('id');
+            if (productId) {
+                loadProductDetail(productId);
+            } else {
+                // No ID provided, redirect to main
+                window.location.href = 'main.html';
+            }
         });
     </script>
 </head>
@@ -75,8 +82,8 @@
     <!-- Full-bleed model viewer -->
     <div class="fullbleed-viewer">
         <model-viewer
-            data-model="workbench-00.glb"
-            alt="Workbench"
+            data-model=""
+            alt="Loading..."
             camera-controls
             auto-rotate
             shadow-intensity="1"
@@ -89,26 +96,25 @@
     <div class="project-info-overlay">
         <a href="main.html" class="back-link">← Back to Portfolio</a>
 
-        <div class="project-title-large">Workbench</div>
+        <div class="project-title-large">Loading...</div>
 
         <div class="project-details">
             <div class="detail-row">
                 <span class="detail-label">Year:</span>
-                <span class="detail-value">2025</span>
+                <span class="detail-value">—</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Medium:</span>
-                <span class="detail-value">3/4" pine plywood</span>
+                <span class="detail-value">—</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Dimensions:</span>
-                <span class="detail-value">48"w x 24"d x 34"h</span>
+                <span class="detail-value">—</span>
             </div>
         </div>
 
         <div class="project-description-full">
-            <p>A sturdy workbench design featuring dynamic material loading. This model demonstrates the material slot system where textures are applied at runtime.</p>
-            <p>The model uses 'plywood-face' and 'plywood-edge' material slots that receive plywood textures from a shared source file, ensuring consistent appearance across all products.</p>
+            <p>Loading product details...</p>
         </div>
 
         <div class="buy-button-container"></div>
