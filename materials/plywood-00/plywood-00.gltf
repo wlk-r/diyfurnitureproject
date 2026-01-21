@@ -34,7 +34,7 @@
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"face",
+			"name":"plywood-face",
 			"normalTexture":{
 				"extensions":{
 					"KHR_texture_transform":{
@@ -62,7 +62,7 @@
 		},
 		{
 			"doubleSided":true,
-			"name":"edge",
+			"name":"plywood-edge",
 			"normalTexture":{
 				"extensions":{
 					"KHR_texture_transform":{
@@ -163,28 +163,28 @@
 	"images":[
 		{
 			"mimeType":"image/webp",
-			"name":"face-normal",
-			"uri":"face-normal.webp"
+			"name":"plywood-face-normal",
+			"uri":"plywood-face-normal.webp"
 		},
 		{
 			"mimeType":"image/webp",
-			"name":"face-diffuse",
-			"uri":"face-diffuse.webp"
+			"name":"plywood-face-diffuse",
+			"uri":"plywood-face-diffuse.webp"
 		},
 		{
 			"mimeType":"image/webp",
-			"name":"face-orm",
-			"uri":"face-orm.webp"
+			"name":"plywood-face-orm",
+			"uri":"plywood-face-orm.webp"
 		},
 		{
 			"mimeType":"image/webp",
-			"name":"edge-diffuse",
-			"uri":"edge-diffuse.webp"
+			"name":"plywood-edge-diffuse",
+			"uri":"plywood-edge-diffuse.webp"
 		},
 		{
 			"mimeType":"image/webp",
-			"name":"edge-orm",
-			"uri":"edge-orm.webp"
+			"name":"plywood-edge-orm",
+			"uri":"plywood-edge-orm.webp"
 		}
 	],
 	"accessors":[

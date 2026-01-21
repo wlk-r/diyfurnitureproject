@@ -3,13 +3,9 @@
    ============================================ */
 
 /* === Material Loading System === */
-/* Models fade in when materials are ready */
-model-viewer[data-model].materials-ready {
-    animation: fadeIn 0.3s ease;
-}
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+/* Models visible immediately for fast loading */
+model-viewer[data-model] {
+    opacity: 1;
 }
 
 /* Circular loading spinner for model cards */
@@ -53,10 +49,7 @@ model-viewer[data-model].materials-ready {
     background: #f7f5ee;
 }
 
-/* Hide model-viewer in cards until materials ready */
-.model-viewer-container model-viewer[data-model]:not(.materials-ready) {
-    opacity: 0;
-}
+/* Note: model-viewer hiding is now handled globally above */
 
 /* === Reset & Base === */
 * {
@@ -464,10 +457,7 @@ model-viewer {
     --poster-color: transparent;
 }
 
-/* Hide fullbleed model-viewer until materials ready */
-.fullbleed-viewer model-viewer[data-model]:not(.materials-ready) {
-    opacity: 0;
-}
+/* Note: fullbleed model-viewer hiding is now handled globally */
 
 /* Project info overlay (upper left) */
 .project-info-overlay {

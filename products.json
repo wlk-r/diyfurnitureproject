@@ -64,7 +64,7 @@
       "id": "5",
       "name": "Workbench",
       "price": 10,
-      "model": "workbench-test file-nomaterials.glb",
+      "model": "workbench-00.glb",
       "year": "2025",
       "medium": "3/4\" pine plywood",
       "dimensions": "48\"w x 24\"d x 34\"h",
@@ -72,7 +72,7 @@
       "shortDescription": "Sturdy workbench design with material slots for customizable finishes. Features dynamic material loading.",
       "fullDescription": [
         "A sturdy workbench design featuring dynamic material loading. This model demonstrates the material slot system where textures are applied at runtime.",
-        "The model uses 'face' and 'edge' material slots that receive plywood textures from a shared source file, ensuring consistent appearance across all products."
+        "The model uses 'plywood-face' and 'plywood-edge' material slots that receive plywood textures from a shared source file, ensuring consistent appearance across all products."
       ]
     }
   ]

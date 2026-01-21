@@ -7,9 +7,13 @@
 // Configuration - UPDATE THIS AFTER DEPLOYING WORKER
 const WORKER_URL = 'https://diyfurniture-worker.wnosworthy.workers.dev';
 
-// Material sources - public folder for browser caching
-// Using loose glTF so texture images cache separately
-const MATERIALS_PATH = './materials';
+// Materials configuration
+// For production: R2 public URL (enable public access in Cloudflare Dashboard)
+// Format: https://pub-{hash}.r2.dev or custom domain
+const MATERIALS_R2_URL = 'https://pub-bfa2d9f625fe46e9ba34b6cc08100b63.r2.dev';
+const MATERIALS_LOCAL_PATH = './materials';
+
+// Material sources - path within materials bucket/folder
 const MATERIAL_SOURCES = {
   'plywood': 'plywood-00/plywood-00.gltf'
 };
@@ -19,6 +23,18 @@ const DEFAULT_MATERIAL = 'plywood';
 const IS_LOCAL = window.location.hostname === 'localhost' ||
                  window.location.hostname === '127.0.0.1' ||
                  window.location.protocol === 'file:';
+
+/**
+ * Get the base URL for materials based on environment
+ */
+function getMaterialsBaseUrl() {
+  if (IS_LOCAL) {
+    console.log('[MATERIALS] Using local materials path');
+    return MATERIALS_LOCAL_PATH;
+  }
+  console.log('[MATERIALS] Using R2 materials URL');
+  return MATERIALS_R2_URL;
+}
 
 // Store extracted materials globally
 let sourceMaterials = {};
@@ -86,7 +102,7 @@ function extractSourceMaterials() {
 /**
  * Apply source materials to a target model-viewer
  */
-function applyMaterialsToViewer(viewer) {
+async function applyMaterialsToViewer(viewer) {
   if (!materialSourceReady || !viewer.model) {
     console.log('[MATERIALS] Cannot apply - source not ready or no model');
     return [];
@@ -114,59 +130,46 @@ function applyMaterialsToViewer(viewer) {
 
   if (applied.length > 0) {
     viewer.requestUpdate();
-    console.log(`[MATERIALS] Applied to model: ${applied.join(', ')}`);
+    console.log(`[MATERIALS] Applied: ${applied.join(', ')}`);
   }
 
   return applied;
 }
 
 /**
- * Create hidden material source viewer and load materials
+ * Create material source viewer and load materials
+ * Optimized for fast loading
  */
 async function initMaterialSource() {
-  // Create container for material source
-  // IMPORTANT: model-viewer must be visible (rendered) to properly load the model
-  // Using opacity:0 and pointer-events:none keeps it invisible to users while
-  // allowing the WebGL context to initialize properly
+  if (materialSourceReady) {
+    return true;
+  }
+
   const container = document.createElement('div');
-  container.style.cssText = 'position:fixed;bottom:0;right:0;width:100px;height:100px;opacity:0;pointer-events:none;z-index:-1;';
-  container.innerHTML = `
-    <model-viewer
-      id="material-source-viewer"
-      style="width:100px;height:100px;">
-    </model-viewer>
-  `;
+  container.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0.01;pointer-events:none;';
+  container.innerHTML = `<model-viewer id="material-source-viewer" style="width:1px;height:1px;"></model-viewer>`;
   document.body.appendChild(container);
 
   materialSourceViewer = container.querySelector('model-viewer');
+  const baseUrl = getMaterialsBaseUrl();
+  const sourceUrl = `${baseUrl}/${MATERIAL_SOURCES[DEFAULT_MATERIAL]}`;
 
-  // Material source uses static public path (not signed URL) for browser caching
-  // glTF with external textures allows each image to cache separately
-  const materialPath = MATERIAL_SOURCES[DEFAULT_MATERIAL];
-  const sourceUrl = `${MATERIALS_PATH}/${materialPath}`;
-  console.log('[MATERIALS] Loading source from:', sourceUrl);
+  console.log(`[MATERIALS] Loading material source from: ${sourceUrl}`);
+  materialSourceViewer.setAttribute('src', sourceUrl);
 
-  return new Promise((resolve) => {
-    // Timeout after 10 seconds
-    const timeout = setTimeout(() => {
-      console.warn('[MATERIALS] Material source load timed out');
-      resolve(false);
-    }, 10000);
-
-    materialSourceViewer.addEventListener('load', () => {
-      clearTimeout(timeout);
+  // Poll for model ready (increased timeout for network latency)
+  const maxWait = 15000;
+  const start = Date.now();
+  while (Date.now() - start < maxWait) {
+    if (materialSourceViewer.model) {
       extractSourceMaterials();
-      resolve(true);
-    });
+      return materialSourceReady;
+    }
+    await new Promise(r => setTimeout(r, 50));
+  }
 
-    materialSourceViewer.addEventListener('error', (e) => {
-      clearTimeout(timeout);
-      console.warn('[MATERIALS] Failed to load material source:', e);
-      resolve(false);
-    });
-
-    materialSourceViewer.setAttribute('src', sourceUrl);
-  });
+  console.warn('[MATERIALS] Timeout waiting for material source to load');
+  return false;
 }
 
 /**
@@ -223,119 +226,68 @@ function updateSpinnerProgress(viewer, percent) {
 }
 
 /**
- * Load a single model with materials
+ * Load a single model and apply materials
+ * Simplified for fast loading
  */
-async function loadSingleModel(viewer, useDelay = false) {
+async function loadSingleModel(viewer) {
   const modelName = viewer.getAttribute('data-model');
-  if (!modelName) return;
-  if (viewer.id === 'material-source-viewer') return;
+  if (!modelName || viewer.id === 'material-source-viewer') return;
 
-  // Hide viewer until materials are applied (CSS handles this via materials-ready class)
-  viewer.style.opacity = '0';
+  const signedUrl = await getSignedModelUrl(modelName);
+  viewer.setAttribute('src', signedUrl);
 
-  try {
-    updateSpinnerProgress(viewer, 10);
-
-    // Get signed URL
-    const signedUrl = await getSignedModelUrl(modelName);
-    updateSpinnerProgress(viewer, 30);
-
-    // Set src to start loading
-    viewer.setAttribute('src', signedUrl);
-    updateSpinnerProgress(viewer, 50);
-
-    // Poll for model to be ready (more reliable than load event)
-    let appliedMaterials = [];
-    const maxWait = 10000;
-    const pollInterval = 50;
-    let waited = 0;
-
-    while (waited < maxWait) {
-      if (viewer.model) {
-        console.log(`[MATERIALS] Model ready after ${waited}ms: ${modelName}`);
-        appliedMaterials = applyMaterialsToViewer(viewer);
-        break;
-      }
-      await new Promise(resolve => setTimeout(resolve, pollInterval));
-      waited += pollInterval;
+  // Poll for model ready, then apply materials
+  const maxWait = 10000;
+  const start = Date.now();
+  while (Date.now() - start < maxWait) {
+    if (viewer.model) {
+      await applyMaterialsToViewer(viewer);
+      break;
     }
+    await new Promise(r => setTimeout(r, 50));
+  }
 
-    if (!viewer.model) {
-      console.warn(`[MATERIALS] Model not ready after ${maxWait}ms: ${modelName}`);
-    }
+  viewer.classList.add('materials-ready');
 
-    updateSpinnerProgress(viewer, 70);
-
-    updateSpinnerProgress(viewer, 90);
-    console.log(`[MATERIALS] Applied to ${modelName}:`, appliedMaterials);
-
-    updateSpinnerProgress(viewer, 100);
-
-    // Reveal the model
-    viewer.style.opacity = '1';
-    viewer.classList.add('materials-ready');
-
-    // Fade out spinner if present
-    const spinner = viewer.parentElement?.querySelector('.model-loading-spinner');
-    if (spinner) {
-      spinner.classList.add('fade-out');
-      setTimeout(() => spinner.remove(), 300);
-    }
-
-    console.log(`Loaded model: ${modelName}`);
-
-  } catch (error) {
-    console.error(`Error loading model ${modelName}:`, error);
-    viewer.style.opacity = '1';
-    viewer.classList.add('materials-ready');
-    const spinner = viewer.parentElement?.querySelector('.model-loading-spinner');
-    if (spinner) spinner.remove();
+  const spinner = viewer.parentElement?.querySelector('.model-loading-spinner');
+  if (spinner) {
+    spinner.classList.add('fade-out');
+    setTimeout(() => spinner.remove(), 300);
   }
 }
 
 /**
  * Load all models with signed URLs
+ * Simplified for fast loading
  */
 async function loadProtectedModels() {
   const modelViewers = document.querySelectorAll('model-viewer[data-model]');
   const isDetailPage = document.body.classList.contains('project-detail-page');
 
+  // Initialize material source first
+  console.log('[MATERIALS] Initializing material source...');
+  await initMaterialSource();
+
   if (isDetailPage) {
-    // Detail page: load material source first, then model with delay
-    console.log('[MATERIALS] Initializing material source...');
-    updateLoadingProgress(10);
-    await initMaterialSource();
-    updateLoadingProgress(30);
-    console.log('[MATERIALS] Source ready, loading target model...');
+    // Remove loading overlay
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+      overlay.classList.add('fade-out');
+      setTimeout(() => overlay.remove(), 400);
+    }
+  }
 
-    for (const viewer of modelViewers) {
-      if (viewer.id === 'material-source-viewer') continue;
+  // Load all models
+  const viewers = Array.from(modelViewers).filter(v => v.id !== 'material-source-viewer');
 
-      updateLoadingProgress(50);
-      await loadSingleModel(viewer, true);
-      updateLoadingProgress(100);
-
-      // Fade out full-page overlay
-      const overlay = document.getElementById('loadingOverlay');
-      if (overlay) {
-        overlay.classList.add('fade-out');
-        setTimeout(() => overlay.remove(), 400);
-      }
+  if (isDetailPage) {
+    // Detail page: load sequentially
+    for (const viewer of viewers) {
+      await loadSingleModel(viewer);
     }
   } else {
-    // Main page: initialize materials once, then load all models with materials
-    console.log('[MATERIALS] Main page - initializing material source...');
-    await initMaterialSource();
-    console.log('[MATERIALS] Source ready, loading models...');
-
-    // Load all models in parallel, applying materials to each
-    const loadPromises = [];
-    for (const viewer of modelViewers) {
-      if (viewer.id === 'material-source-viewer') continue;
-      loadPromises.push(loadSingleModel(viewer, false)); // no delay on main page
-    }
-
-    await Promise.all(loadPromises);
+    // Main page: load in parallel
+    await Promise.all(viewers.map(v => loadSingleModel(v)));
   }
 }
 
