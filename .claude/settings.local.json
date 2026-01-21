@@ -27,7 +27,11 @@
       "Bash(npx http-server:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebSearch",
-      "WebFetch(domain:modelviewer.dev)"
+      "WebFetch(domain:modelviewer.dev)",
+      "Bash(wrangler r2 bucket create:*)",
+      "Bash(wrangler r2 object put:*)",
+      "Bash(wrangler r2 object list:*)",
+      "WebFetch(domain:pub-bfa2d9f625fe46e9ba34b6cc08100b63.r2.dev)"
     ]
   }
 }
