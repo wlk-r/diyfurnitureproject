@@ -31,7 +31,11 @@
       "Bash(wrangler r2 bucket create:*)",
       "Bash(wrangler r2 object put:*)",
       "Bash(wrangler r2 object list:*)",
-      "WebFetch(domain:pub-bfa2d9f625fe46e9ba34b6cc08100b63.r2.dev)"
+      "WebFetch(domain:pub-bfa2d9f625fe46e9ba34b6cc08100b63.r2.dev)",
+      "Bash(powershell -Command \"Remove-Item -Path ''\\\\?\\\\C:\\\\Users\\\\Walker\\\\Documents\\\\diyfurnitureproject\\\\models\\\\nul'' -Force\")",
+      "Bash(powershell -Command \"Remove-Item -LiteralPath ''\\\\?\\\\C:\\\\Users\\\\Walker\\\\Documents\\\\diyfurnitureproject\\\\models\\\\nul'' -Force\")",
+      "Bash(cmd //c \"del \\\\?\\\\C:\\\\Users\\\\Walker\\\\Documents\\\\diyfurnitureproject\\\\models\\\\nul\")",
+      "Bash(python -c \"import os; os.remove\\(r''\\\\?\\\\C:\\\\Users\\\\Walker\\\\Documents\\\\diyfurnitureproject\\\\models\\\\nul''\\)\")"
     ]
   }
 }

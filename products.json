@@ -46,63 +46,33 @@
       ]
     },
     {
-      "id": "1",
-      "name": "Work Table",
-      "price": 5,
-      "model": "model1.glb",
+      "id": "8",
+      "name": "Lightweight Table",
+      "price": 10,
+      "model": "lightweighttable-00.glb",
       "year": "2025",
       "medium": "3/4\" pine plywood",
-      "dimensions": "60\"w x 30\"d x 36\"h",
+      "dimensions": "48\"w x 24\"d x 31\"h",
       "checkoutUrl": "",
-      "shortDescription": "Simple work table design with a focus on stability and ease of assembly. Designed to be assembled with glue and brad nails or staples, but can alternatively be screwed together for disassembly",
+      "shortDescription": "Lightweight table design optimized for easy transport and assembly.",
       "fullDescription": [
-        "Simple work table design with a focus on stability and ease of construction.",
-        "Designed to be assembled with glue and brad nails or staples, but can alternatively be screwed together for disassembly"
+        "A lightweight table design featuring efficient use of materials while maintaining stability and durability.",
+        "Uses 'plywood-face' and 'plywood-edge' material slots for consistent appearance with other furniture pieces."
       ]
     },
     {
-      "id": "2",
-      "name": "Model Name 2",
-      "price": 35,
-      "model": "model2.glb",
-      "year": "2026",
-      "medium": "Digital",
-      "dimensions": "Variable",
+      "id": "9",
+      "name": "Coming Soon",
+      "price": 0,
+      "model": "fullsheetply-00.glb",
+      "year": "2025",
+      "medium": "3/4\" pine plywood",
+      "dimensions": "96\"w x 48\"d x .75\"h",
       "checkoutUrl": "",
-      "shortDescription": "Description of your second 3D model. Brief overview of the concept, materials, and process behind this work.",
+      "shortDescription": "More designs coming soon. Stay tuned for new furniture plans.",
       "fullDescription": [
-        "This is a detailed description of your second 3D model. You can write more extensively here about the concept, process, materials, inspiration, and context of the work.",
-        "Add multiple paragraphs to provide comprehensive information about this project. Discuss the technical approach, creative decisions, and any relevant background."
-      ]
-    },
-    {
-      "id": "3",
-      "name": "Model Name 3",
-      "price": 40,
-      "model": "model3.glb",
-      "year": "2026",
-      "medium": "Digital",
-      "dimensions": "Variable",
-      "checkoutUrl": "",
-      "shortDescription": "Description of your third 3D model. Brief overview of the concept, materials, and process behind this work.",
-      "fullDescription": [
-        "This is a detailed description of your third 3D model. You can write more extensively here about the concept, process, materials, inspiration, and context of the work.",
-        "Add multiple paragraphs to provide comprehensive information about this project. Discuss the technical approach, creative decisions, and any relevant background."
-      ]
-    },
-    {
-      "id": "4",
-      "name": "Model Name 4",
-      "price": 50,
-      "model": "model4.glb",
-      "year": "2026",
-      "medium": "Digital",
-      "dimensions": "Variable",
-      "checkoutUrl": "",
-      "shortDescription": "Description of your fourth 3D model. Brief overview of the concept, materials, and process behind this work.",
-      "fullDescription": [
-        "This is a detailed description of your fourth 3D model. You can write more extensively here about the concept, process, materials, inspiration, and context of the work.",
-        "Add multiple paragraphs to provide comprehensive information about this project. Discuss the technical approach, creative decisions, and any relevant background."
+        "More furniture designs are in development.",
+        "Check back soon for new plans and projects."
       ]
     }
   ]

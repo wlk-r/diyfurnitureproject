@@ -174,7 +174,9 @@ function createProductCard(product, index) {
         shadow-intensity="1"
         exposure="1"
         tone-mapping="aces"
-        ar>
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        ar-scale="auto">
         <effect-composer render-mode="quality">
           <pixelate-effect
             id="pixelate-${index}"

@@ -8,7 +8,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <!-- Import map for Three.js (required by model-viewer-effects) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.166.0/build/three.module.js",
+            "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.166.0/examples/jsm/"
+        }
+    }
+    </script>
+    <!-- Model Viewer -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <!-- Model Viewer Effects addon -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects/dist/model-viewer-effects.min.js"></script>
+    <!-- Protected Model Loader (for material system) -->
+    <script src="model-loader.js" defer></script>
     <style>
         /* Access form styling to match site aesthetic */
         .access-form {
@@ -75,12 +90,29 @@
     <div class="fullbleed-viewer">
         <model-viewer
             id="comingSoonModel"
+            data-model="workbench-00.glb"
             alt="Coming Soon"
             camera-controls
             auto-rotate
             shadow-intensity="1"
             exposure="1"
-            ar>
+            tone-mapping="aces"
+            ar
+            ar-modes="webxr scene-viewer quick-look"
+            ar-scale="auto">
+            <effect-composer render-mode="quality">
+                <pixelate-effect
+                    id="index-pixelate"
+                    blend-mode="default"
+                    granularity="50">
+                </pixelate-effect>
+                <color-grade-effect
+                    blend-mode="default"
+                    brightness="0"
+                    contrast="0"
+                    saturation="-.1">
+                </color-grade-effect>
+            </effect-composer>
         </model-viewer>
     </div>
 
@@ -116,39 +148,8 @@
     </div>
 
     <script>
-        // Configuration
-        const WORKER_URL = 'https://diyfurniture-worker.wnosworthy.workers.dev';
+        // Access code configuration
         const ACCESS_CODE = 'diyfurniture2026'; // Change this to your desired access code
-
-        // Load the protected model with signed URL
-        async function loadModel() {
-            const modelViewer = document.getElementById('comingSoonModel');
-            const modelName = 'model1.glb';
-
-            try {
-                // Fetch signed URL from worker
-                const response = await fetch(`${WORKER_URL}/api/model-url`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ modelName })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to get signed URL: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                modelViewer.setAttribute('src', data.url);
-                console.log('Model loaded with signed URL');
-
-            } catch (error) {
-                console.error('Error loading model:', error);
-                // Fallback to direct R2 URL if worker fails
-                modelViewer.setAttribute('src', 'https://pub-fe05b24a16c144acaac1543477b4828c.r2.dev/model1.glb');
-            }
-        }
 
         // Check access code
         function checkCode() {
@@ -174,13 +175,80 @@
                 checkCode();
             }
         });
+        // Model loading handled automatically by model-loader.js (project-detail-page class)
+    </script>
 
-        // Load model when page loads
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadModel);
-        } else {
-            loadModel();
+    <script type="module">
+    // Pixelate effect for index page
+    const SETTINGS = {
+        startGranularity: 50,
+        endGranularity: 15,
+        duration: 3000,
+        fadeDelay: 500,
+        updateRate: 50
+    };
+
+    const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    function startPixelateAnimation() {
+        const viewer = document.getElementById('comingSoonModel');
+        const pixelateEffect = document.getElementById('index-pixelate');
+        if (!viewer || !pixelateEffect) return;
+
+        pixelateEffect.setAttribute('granularity', SETTINGS.startGranularity);
+        pixelateEffect.setAttribute('blend-mode', 'default');
+
+        const startTime = performance.now();
+        const startGran = SETTINGS.startGranularity;
+        const endGran = SETTINGS.endGranularity;
+
+        const animate = () => {
+            const elapsed = performance.now() - startTime;
+            const progress = Math.min(1, elapsed / SETTINGS.duration);
+            const easedProgress = easeInOut(progress);
+
+            const currentGranularity = Math.round(startGran - (startGran - endGran) * easedProgress);
+            pixelateEffect.setAttribute('granularity', currentGranularity);
+
+            if (progress < 1) {
+                setTimeout(animate, SETTINGS.updateRate);
+            } else {
+                // Animation complete - remove effect-composer and tone-mapping
+                const effectComposer = viewer.querySelector('effect-composer');
+                if (effectComposer) {
+                    effectComposer.remove();
+                }
+                viewer.removeAttribute('tone-mapping');
+                console.log('[EFFECT] Index viewer animation complete');
+            }
+        };
+
+        setTimeout(animate, SETTINGS.fadeDelay);
+    }
+
+    // Watch for materials-ready class
+    const viewer = document.getElementById('comingSoonModel');
+    if (viewer) {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    if (viewer.classList.contains('materials-ready')) {
+                        console.log('[EFFECT] Index viewer materials ready, starting animation');
+                        startPixelateAnimation();
+                        observer.disconnect();
+                    }
+                }
+            });
+        });
+
+        observer.observe(viewer, { attributes: true, attributeFilter: ['class'] });
+
+        // Fallback: if materials-ready is already set
+        if (viewer.classList.contains('materials-ready')) {
+            startPixelateAnimation();
+            observer.disconnect();
         }
+    }
     </script>
 </body>
 </html>

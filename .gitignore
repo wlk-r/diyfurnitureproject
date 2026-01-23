@@ -35,3 +35,4 @@ tmpclaude-*
 # Local 3D models (already on R2)
 models/*.glb
 models/*.gltf
+models/nul
