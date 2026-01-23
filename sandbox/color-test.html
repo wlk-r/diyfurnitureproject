@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Background Color Test</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <!-- Import map for Three.js (required by model-viewer-effects) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.166.0/build/three.module.js",
+            "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.166.0/examples/jsm/"
+        }
+    }
+    </script>
+    <!-- Model Viewer -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <!-- Model Viewer Effects addon -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects/dist/model-viewer-effects.min.js"></script>
+    <!-- Override paths for sandbox folder before loading model-loader.js -->
+    <script>
+        // Override the material paths for sandbox subfolder
+        window.SANDBOX_MODE = true;
+        window.SANDBOX_MATERIALS_PATH = '../materials';
+        window.SANDBOX_MODELS_PATH = '../models';
+    </script>
+    <!-- Protected Model Loader (for material system) -->
+    <script src="../model-loader.js" defer></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Hide model-viewer's default progress bar */
+        model-viewer::part(default-progress-bar) {
+            display: none;
+        }
+
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            min-height: 100vh;
+            transition: background-color 0.3s ease;
+            padding: 20px;
+        }
+
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 20px;
+            border: 1px solid #d8d2c6;
+            z-index: 100;
+            max-width: 280px;
+        }
+
+        .controls h2 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 16px;
+            font-weight: 400;
+        }
+
+        .color-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        .color-picker {
+            width: 44px;
+            height: 44px;
+            border: 1px solid #d8d2c6;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .hex-input {
+            flex: 1;
+            padding: 10px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            border: 1px solid #d8d2c6;
+            text-transform: uppercase;
+        }
+
+        .preset-colors {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .preset {
+            width: 100%;
+            aspect-ratio: 1;
+            border: 1px solid #d8d2c6;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .preset:hover::after {
+            content: attr(data-name);
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            white-space: nowrap;
+            background: white;
+            padding: 2px 4px;
+        }
+
+        .preset.active {
+            border: 2px solid #1f1f1f;
+        }
+
+        .current-color {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #d8d2c6;
+            font-size: 10px;
+        }
+
+        .sliders-section {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #d8d2c6;
+        }
+
+        .slider-group {
+            margin-bottom: 12px;
+        }
+
+        .slider-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .slider-value {
+            font-weight: 400;
+            min-width: 36px;
+            text-align: right;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #d8d2c6;
+            border-radius: 0;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #1f1f1f;
+            border-radius: 0;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: #1f1f1f;
+            border-radius: 0;
+            border: none;
+            cursor: pointer;
+        }
+
+        .slider-section-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .hsl-section, .rgb-section {
+            margin-bottom: 16px;
+        }
+
+        .copy-btn {
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: #1f1f1f;
+            color: white;
+            border: none;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .copy-btn:hover {
+            background: #3a3a3a;
+        }
+
+        .copied {
+            background: #2e7d32 !important;
+        }
+
+        /* Grid Layout */
+        .main-content {
+            margin-left: 320px;
+            padding: 0 20px;
+        }
+
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            padding: 0;
+        }
+
+        @media (min-width: 1200px) {
+            .models-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .model-card {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .model-viewer-container {
+            width: 100%;
+            aspect-ratio: 1;
+            background: transparent;
+            position: relative;
+        }
+
+        .model-viewer-container model-viewer {
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+            --poster-color: transparent;
+        }
+
+        .model-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            font-size: 11px;
+            padding: 0 4px;
+        }
+
+        .model-info-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .model-name {
+            color: #1f1f1f;
+            text-decoration: none;
+            font-weight: 400;
+        }
+
+        .model-specs {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 10px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .model-price {
+            color: #1f1f1f;
+            font-weight: 400;
+            white-space: nowrap;
+            margin-left: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .controls {
+                position: relative;
+                max-width: 100%;
+                margin-bottom: 24px;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body class="project-detail-page" style="background-color: #f7f5ee;">
+    <div class="controls">
+        <h2>Background Color Test</h2>
+
+        <div class="color-input-group">
+            <input type="color" id="colorPicker" class="color-picker" value="#f7f5ee">
+            <input type="text" id="hexInput" class="hex-input" value="#f7f5ee" placeholder="#f7f5ee">
+        </div>
+
+        <div class="preset-colors">
+            <div class="preset active" style="background: #f7f5ee;" data-color="#f7f5ee" data-name="Original"></div>
+            <div class="preset" style="background: #B6CEF0;" data-color="#B6CEF0" data-name="Light Blue"></div>
+            <div class="preset" style="background: #ffffff;" data-color="#ffffff" data-name="White"></div>
+            <div class="preset" style="background: #f5f5f5;" data-color="#f5f5f5" data-name="Light Gray"></div>
+            <div class="preset" style="background: #E8E4DD;" data-color="#E8E4DD" data-name="Warm Gray"></div>
+            <div class="preset" style="background: #F0EBE3;" data-color="#F0EBE3" data-name="Beige"></div>
+            <div class="preset" style="background: #E6F2E6;" data-color="#E6F2E6" data-name="Mint"></div>
+            <div class="preset" style="background: #FFF8E7;" data-color="#FFF8E7" data-name="Cream"></div>
+            <div class="preset" style="background: #F5E6D3;" data-color="#F5E6D3" data-name="Sand"></div>
+            <div class="preset" style="background: #E8DED5;" data-color="#E8DED5" data-name="Taupe"></div>
+            <div class="preset" style="background: #D4E5F7;" data-color="#D4E5F7" data-name="Sky"></div>
+            <div class="preset" style="background: #1f1f1f;" data-color="#1f1f1f" data-name="Dark"></div>
+        </div>
+
+        <div class="current-color">
+            Current: <span id="currentColor">#f7f5ee</span>
+        </div>
+
+        <div class="sliders-section">
+            <div class="hsl-section">
+                <div class="slider-section-title">HSL</div>
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Hue</span>
+                        <span class="slider-value" id="hueValue">45°</span>
+                    </div>
+                    <input type="range" class="slider" id="hueSlider" min="0" max="360" value="45">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Saturation</span>
+                        <span class="slider-value" id="satValue">38%</span>
+                    </div>
+                    <input type="range" class="slider" id="satSlider" min="0" max="100" value="38">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Lightness</span>
+                        <span class="slider-value" id="lightValue">95%</span>
+                    </div>
+                    <input type="range" class="slider" id="lightSlider" min="0" max="100" value="95">
+                </div>
+            </div>
+
+            <div class="rgb-section">
+                <div class="slider-section-title">RGB</div>
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Red</span>
+                        <span class="slider-value" id="redValue">247</span>
+                    </div>
+                    <input type="range" class="slider" id="redSlider" min="0" max="255" value="247">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Green</span>
+                        <span class="slider-value" id="greenValue">245</span>
+                    </div>
+                    <input type="range" class="slider" id="greenSlider" min="0" max="255" value="245">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Blue</span>
+                        <span class="slider-value" id="blueValue">238</span>
+                    </div>
+                    <input type="range" class="slider" id="blueSlider" min="0" max="255" value="238">
+                </div>
+            </div>
+        </div>
+
+        <button class="copy-btn" id="copyBtn">Copy CSS</button>
+    </div>
+
+    <main class="main-content">
+        <div class="models-grid" id="modelsGrid">
+            <!-- Products will be loaded here -->
+        </div>
+    </main>
+
+    <script>
+        // Color picker functionality
+        const body = document.body;
+        const colorPicker = document.getElementById('colorPicker');
+        const hexInput = document.getElementById('hexInput');
+        const currentColor = document.getElementById('currentColor');
+        const presets = document.querySelectorAll('.preset');
+        const copyBtn = document.getElementById('copyBtn');
+
+        // Sliders
+        const hueSlider = document.getElementById('hueSlider');
+        const satSlider = document.getElementById('satSlider');
+        const lightSlider = document.getElementById('lightSlider');
+        const redSlider = document.getElementById('redSlider');
+        const greenSlider = document.getElementById('greenSlider');
+        const blueSlider = document.getElementById('blueSlider');
+
+        // Value displays
+        const hueValue = document.getElementById('hueValue');
+        const satValue = document.getElementById('satValue');
+        const lightValue = document.getElementById('lightValue');
+        const redValue = document.getElementById('redValue');
+        const greenValue = document.getElementById('greenValue');
+        const blueValue = document.getElementById('blueValue');
+
+        // Color conversion utilities
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        function rgbToHsl(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+            }
+            return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+        }
+
+        function hslToRgb(h, s, l) {
+            h /= 360; s /= 100; l /= 100;
+            let r, g, b;
+
+            if (s === 0) {
+                r = g = b = l;
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+            return {
+                r: Math.round(r * 255),
+                g: Math.round(g * 255),
+                b: Math.round(b * 255)
+            };
+        }
+
+        // Update all controls from hex
+        function setColor(hex, source = 'hex') {
+            const rgb = hexToRgb(hex);
+            if (!rgb) return;
+
+            const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+
+            // Update body and main controls
+            body.style.backgroundColor = hex;
+            colorPicker.value = hex;
+            hexInput.value = hex.toUpperCase();
+            currentColor.textContent = hex.toUpperCase();
+
+            // Update RGB sliders and values
+            if (source !== 'rgb') {
+                redSlider.value = rgb.r;
+                greenSlider.value = rgb.g;
+                blueSlider.value = rgb.b;
+            }
+            redValue.textContent = rgb.r;
+            greenValue.textContent = rgb.g;
+            blueValue.textContent = rgb.b;
+
+            // Update HSL sliders and values
+            if (source !== 'hsl') {
+                hueSlider.value = hsl.h;
+                satSlider.value = hsl.s;
+                lightSlider.value = hsl.l;
+            }
+            hueValue.textContent = hsl.h + '°';
+            satValue.textContent = hsl.s + '%';
+            lightValue.textContent = hsl.l + '%';
+
+            // Update active preset
+            presets.forEach(p => {
+                p.classList.toggle('active', p.dataset.color.toUpperCase() === hex.toUpperCase());
+            });
+        }
+
+        // Update from RGB sliders
+        function updateFromRgb() {
+            const r = parseInt(redSlider.value);
+            const g = parseInt(greenSlider.value);
+            const b = parseInt(blueSlider.value);
+            const hex = rgbToHex(r, g, b);
+            setColor(hex, 'rgb');
+        }
+
+        // Update from HSL sliders
+        function updateFromHsl() {
+            const h = parseInt(hueSlider.value);
+            const s = parseInt(satSlider.value);
+            const l = parseInt(lightSlider.value);
+            const rgb = hslToRgb(h, s, l);
+            const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+            setColor(hex, 'hsl');
+        }
+
+        // Event listeners
+        colorPicker.addEventListener('input', (e) => setColor(e.target.value));
+
+        hexInput.addEventListener('input', (e) => {
+            let value = e.target.value;
+            if (!value.startsWith('#')) value = '#' + value;
+            if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+                setColor(value);
+            }
+        });
+
+        presets.forEach(preset => {
+            preset.addEventListener('click', () => setColor(preset.dataset.color));
+        });
+
+        // RGB slider listeners
+        redSlider.addEventListener('input', updateFromRgb);
+        greenSlider.addEventListener('input', updateFromRgb);
+        blueSlider.addEventListener('input', updateFromRgb);
+
+        // HSL slider listeners
+        hueSlider.addEventListener('input', updateFromHsl);
+        satSlider.addEventListener('input', updateFromHsl);
+        lightSlider.addEventListener('input', updateFromHsl);
+
+        copyBtn.addEventListener('click', () => {
+            const css = `background-color: ${hexInput.value.toLowerCase()};`;
+            navigator.clipboard.writeText(css).then(() => {
+                copyBtn.textContent = 'Copied!';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy CSS';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            });
+        });
+
+        // Initialize sliders with default color
+        setColor('#f7f5ee');
+    </script>
+
+    <script>
+        // Pixelate effect settings
+        const PIXELATE_SETTINGS = {
+            startGranularity: 50,
+            endGranularity: 15,
+            duration: 3000,
+            fadeDelay: 500,
+            updateRate: 50
+        };
+
+        const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+        // Pixelate effect manager
+        const PixelateEffect = {
+            instances: [],
+            animationIntervals: {},
+
+            startAnimation(id) {
+                const instance = this.instances.find(i => i.id === id);
+                if (!instance) return;
+
+                const { pixelateEffect } = instance;
+                instance.active = true;
+
+                pixelateEffect.setAttribute('granularity', PIXELATE_SETTINGS.startGranularity);
+                pixelateEffect.setAttribute('blend-mode', 'default');
+
+                const startTime = performance.now();
+                const startGran = PIXELATE_SETTINGS.startGranularity;
+                const endGran = PIXELATE_SETTINGS.endGranularity;
+
+                const animate = () => {
+                    if (!instance.active) return;
+
+                    const elapsed = performance.now() - startTime;
+                    const progress = Math.min(1, elapsed / PIXELATE_SETTINGS.duration);
+                    const easedProgress = easeInOut(progress);
+
+                    const currentGranularity = Math.round(startGran - (startGran - endGran) * easedProgress);
+                    pixelateEffect.setAttribute('granularity', currentGranularity);
+
+                    if (progress < 1) {
+                        this.animationIntervals[id] = setTimeout(animate, PIXELATE_SETTINGS.updateRate);
+                    } else {
+                        const effectComposer = instance.viewer.querySelector('effect-composer');
+                        if (effectComposer) {
+                            effectComposer.remove();
+                        }
+                        instance.viewer.removeAttribute('tone-mapping');
+                        instance.active = false;
+                    }
+                };
+
+                setTimeout(animate, PIXELATE_SETTINGS.fadeDelay);
+            }
+        };
+
+        // Load products and create grid
+        async function loadProducts() {
+            try {
+                const response = await fetch('../products.json');
+                if (!response.ok) throw new Error('Failed to load products');
+
+                const data = await response.json();
+                const products = data.products;
+                const grid = document.getElementById('modelsGrid');
+
+                products.forEach((product, index) => {
+                    const article = document.createElement('article');
+                    article.className = 'model-card';
+
+                    article.innerHTML = `
+                        <div class="model-viewer-container">
+                            <model-viewer
+                                id="model-viewer-${index}"
+                                data-model="${product.model}"
+                                alt="${product.name}"
+                                loading="eager"
+                                camera-controls
+                                disable-zoom
+                                disable-pan
+                                auto-rotate
+                                shadow-intensity="1"
+                                exposure="1"
+                                tone-mapping="aces">
+                                <effect-composer render-mode="quality">
+                                    <pixelate-effect
+                                        id="pixelate-${index}"
+                                        blend-mode="default"
+                                        granularity="${PIXELATE_SETTINGS.startGranularity}">
+                                    </pixelate-effect>
+                                    <color-grade-effect
+                                        blend-mode="default"
+                                        brightness="0"
+                                        contrast="0"
+                                        saturation="-.1">
+                                    </color-grade-effect>
+                                </effect-composer>
+                            </model-viewer>
+                        </div>
+                        <div class="model-info">
+                            <div class="model-info-left">
+                                <span class="model-name">${product.name}</span>
+                                <div class="model-specs">
+                                    <span class="model-materials">${product.medium}</span>
+                                    <span class="model-dimensions">${product.dimensions}</span>
+                                </div>
+                            </div>
+                            <span class="model-price">$${product.price}</span>
+                        </div>
+                    `;
+
+                    grid.appendChild(article);
+
+                    // Set up pixelate effect
+                    const viewer = article.querySelector('model-viewer');
+                    const pixelateEffect = article.querySelector(`#pixelate-${index}`);
+
+                    if (viewer && pixelateEffect) {
+                        PixelateEffect.instances.push({
+                            id: index,
+                            viewer,
+                            pixelateEffect,
+                            active: false
+                        });
+
+                        const observer = new MutationObserver((mutations) => {
+                            mutations.forEach((mutation) => {
+                                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                                    if (viewer.classList.contains('materials-ready')) {
+                                        PixelateEffect.startAnimation(index);
+                                        observer.disconnect();
+                                    }
+                                }
+                            });
+                        });
+
+                        observer.observe(viewer, { attributes: true, attributeFilter: ['class'] });
+
+                        if (viewer.classList.contains('materials-ready')) {
+                            PixelateEffect.startAnimation(index);
+                            observer.disconnect();
+                        }
+                    }
+                });
+
+                // Trigger model loading
+                if (typeof loadProtectedModels === 'function') {
+                    loadProtectedModels();
+                }
+
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+        }
+
+        // Load when ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadProducts);
+        } else {
+            loadProducts();
+        }
+    </script>
+</body>
+</html>

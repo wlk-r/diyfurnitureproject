@@ -11,7 +11,8 @@ const WORKER_URL = 'https://diyfurniture-worker.wnosworthy.workers.dev';
 // For production: R2 public URL (enable public access in Cloudflare Dashboard)
 // Format: https://pub-{hash}.r2.dev or custom domain
 const MATERIALS_R2_URL = 'https://pub-bfa2d9f625fe46e9ba34b6cc08100b63.r2.dev';
-const MATERIALS_LOCAL_PATH = './materials';
+const MATERIALS_LOCAL_PATH = window.SANDBOX_MATERIALS_PATH || './materials';
+const MODELS_LOCAL_PATH = window.SANDBOX_MODELS_PATH || './models';
 
 // Material sources - path within materials bucket/folder
 const MATERIAL_SOURCES = {
@@ -57,7 +58,7 @@ function updateLoadingProgress(percent) {
  */
 async function checkLocalModelExists(modelName) {
   try {
-    const response = await fetch(`./models/${modelName}`, { method: 'HEAD' });
+    const response = await fetch(`${MODELS_LOCAL_PATH}/${modelName}`, { method: 'HEAD' });
     return response.ok;
   } catch (error) {
     return false;
@@ -195,7 +196,7 @@ async function getSignedModelUrl(modelName) {
 
   if (localExists) {
     console.log(`[LOCAL] Loading model from models folder: ${modelName}`);
-    return `./models/${modelName}`;
+    return `${MODELS_LOCAL_PATH}/${modelName}`;
   }
 
   // If not found locally, use production worker
