@@ -4,23 +4,15 @@
 
 /* === AR Button Styling === */
 model-viewer::part(default-ar-button) {
-    background-color: #1f1f1f;
-    border-radius: 0;
-    border: 1px solid #1f1f1f;
-    color: white;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 8px 16px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    position: absolute;
     bottom: 16px;
     right: 16px;
-}
-
-model-viewer::part(default-ar-button):hover {
-    background-color: white;
-    color: #1f1f1f;
+    width: 44px;
+    height: 44px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    border: 1px solid #d8d2c6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* === Material Loading System === */

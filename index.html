@@ -25,6 +25,11 @@
     <!-- Protected Model Loader (for material system) -->
     <script src="model-loader.js" defer></script>
     <style>
+        /* Hide model-viewer's default progress bar */
+        model-viewer::part(default-progress-bar) {
+            display: none;
+        }
+
         /* Access form styling to match site aesthetic */
         .access-form {
             margin-top: 32px;
