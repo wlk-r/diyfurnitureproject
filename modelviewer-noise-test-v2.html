@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>diy furniture project</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <!-- Import map for Three.js (required by model-viewer-effects) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.166.0/build/three.module.js",
+            "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.166.0/examples/jsm/"
+        }
+    }
+    </script>
+    <!-- Model Viewer -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <!-- Model Viewer Effects addon -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects/dist/model-viewer-effects.min.js"></script>
+    <!-- Protected Model Loader -->
+    <script src="model-loader.js" defer></script>
+
+    <style>
+        /* Hide model-viewer's default progress bar */
+        model-viewer::part(default-progress-bar) {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-grid">
+        <!-- Left Sidebar: Profile -->
+        <aside class="sidebar-left">
+            <div class="sidebar-header">diy furniture project</div>
+            <hr class="hairline">
+
+            <div class="sidebar-section">
+                <p class="sidebar-text">Material and virtual design that seeks to make building durable furniture more accessible.</p>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-label">PAGES</div>
+                <a href="main.html" class="sidebar-link">Home</a><br>
+                <a href="about.html" class="sidebar-link">About</a><br>
+                <a href="suggested-tools.html" class="sidebar-link">Suggested Tools</a><br>
+                <a href="faqs.html" class="sidebar-link">FAQs</a>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-label">CONTACT</div>
+                <a href="mailto:wnosworthy@gmail.com" class="sidebar-link">wnosworthy@gmail.com</a><br>
+                <a href="https://instagram.com/walkernotsoworthy" class="sidebar-link">Instagram</a>
+            </div>
+        </aside>
+
+        <!-- Main Content: Work Feed -->
+        <main class="main-content">
+            <!-- Products loaded dynamically from products.json -->
+            <div class="models-grid">
+                <!-- Products will be loaded here -->
+            </div>
+        </main>
+
+    </div>
+
+    <script type="module">
+    // Ease in-out function (cubic)
+    const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    // Pixelate effect settings
+    const SETTINGS = {
+        startGranularity: 50,
+        endGranularity: 15,
+        duration: 3000,
+        fadeDelay: 500,
+        updateRate: 50
+    };
+
+    // Pixelate effect manager
+    const PixelateEffect = {
+        instances: [],
+        animationIntervals: {},
+
+        startAnimation(id) {
+            const instance = this.instances.find(i => i.id === id);
+            if (!instance) return;
+
+            const { pixelateEffect } = instance;
+            instance.active = true;
+
+            // Set initial granularity
+            pixelateEffect.setAttribute('granularity', SETTINGS.startGranularity);
+            pixelateEffect.setAttribute('blend-mode', 'default');
+
+            const startTime = performance.now();
+            const startGran = SETTINGS.startGranularity;
+            const endGran = SETTINGS.endGranularity;
+
+            const animate = () => {
+                if (!instance.active) return;
+
+                const elapsed = performance.now() - startTime;
+                const progress = Math.min(1, elapsed / SETTINGS.duration);
+                const easedProgress = easeInOut(progress);
+
+                const currentGranularity = Math.round(startGran - (startGran - endGran) * easedProgress);
+                pixelateEffect.setAttribute('granularity', currentGranularity);
+
+                if (progress < 1) {
+                    this.animationIntervals[id] = setTimeout(animate, SETTINGS.updateRate);
+                } else {
+                    // Animation complete - remove effect-composer and tone-mapping to restore original colors
+                    const effectComposer = instance.viewer.querySelector('effect-composer');
+                    if (effectComposer) {
+                        effectComposer.remove();
+                    }
+                    instance.viewer.removeAttribute('tone-mapping');
+                    instance.active = false;
+                    console.log(`[EFFECT] Model ${id} animation complete, effect-composer removed`);
+                }
+            };
+
+            // Start with delay
+            setTimeout(animate, SETTINGS.fadeDelay);
+        },
+
+        stopAnimation(id) {
+            if (this.animationIntervals[id]) {
+                clearTimeout(this.animationIntervals[id]);
+                delete this.animationIntervals[id];
+            }
+            const instance = this.instances.find(i => i.id === id);
+            if (instance) {
+                instance.active = false;
+            }
+        }
+    };
+
+    // Product loader with pixelate effect
+    async function loadProductsWithPixelate() {
+        try {
+            const response = await fetch('./products.json');
+            if (!response.ok) throw new Error(`Failed to load products: ${response.statusText}`);
+
+            const data = await response.json();
+            const products = data.products;
+            const grid = document.querySelector('.models-grid');
+            if (!grid) return;
+
+            grid.innerHTML = '';
+
+            products.forEach((product, index) => {
+                const article = document.createElement('article');
+                article.className = 'model-card';
+
+                // Exact same structure as product-loader.js but with effect-composer
+                article.innerHTML = `
+                    <div class="model-viewer-container">
+                        <model-viewer
+                            id="model-viewer-${index}"
+                            data-model="${product.model}"
+                            alt="${product.name}"
+                            camera-controls
+                            disable-zoom
+                            disable-pan
+                            auto-rotate
+                            shadow-intensity="1"
+                            exposure="1"
+                            tone-mapping="aces"
+                            ar>
+                            <effect-composer render-mode="quality">
+                                <pixelate-effect
+                                    id="pixelate-${index}"
+                                    blend-mode="default"
+                                    granularity="${SETTINGS.startGranularity}">
+                                </pixelate-effect>
+                                <color-grade-effect
+                                    blend-mode="default"
+                                    brightness="0"
+                                    contrast="0"
+                                    saturation="-.1">
+                                </color-grade-effect>
+                            </effect-composer>
+                        </model-viewer>
+                    </div>
+                    <div class="model-info">
+                        <div class="model-info-left">
+                            <a href="project.html?id=${product.id}" class="model-name">${product.name}</a>
+                            <div class="model-specs">
+                                <span class="model-materials">${product.medium}</span>
+                                <span class="model-dimensions">${product.dimensions}</span>
+                            </div>
+                        </div>
+                        <span class="model-price">$${product.price}</span>
+                    </div>
+                `;
+
+                grid.appendChild(article);
+
+                const viewer = article.querySelector('model-viewer');
+                const pixelateEffect = article.querySelector(`#pixelate-${index}`);
+
+                // Store instance
+                PixelateEffect.instances.push({
+                    id: index,
+                    viewer,
+                    pixelateEffect,
+                    active: false
+                });
+
+                // Watch for materials-ready class (added by model-loader.js after materials applied)
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                            if (viewer.classList.contains('materials-ready')) {
+                                // Materials are applied - start pixelate animation
+                                console.log(`[EFFECT] Model ${index} materials ready, starting animation`);
+                                PixelateEffect.startAnimation(index);
+                                observer.disconnect();
+                            }
+                        }
+                    });
+                });
+
+                observer.observe(viewer, { attributes: true, attributeFilter: ['class'] });
+
+                // Fallback: if materials-ready is already set
+                if (viewer.classList.contains('materials-ready')) {
+                    PixelateEffect.startAnimation(index);
+                    observer.disconnect();
+                }
+            });
+
+            console.log(`Loaded ${products.length} products with pixelate effect`);
+
+            // Load models using the existing model-loader
+            if (typeof loadProtectedModels === 'function') {
+                loadProtectedModels();
+            }
+
+        } catch (error) {
+            console.error('Error loading products:', error);
+        }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        loadProductsWithPixelate();
+    });
+    </script>
+</body>
+</html>

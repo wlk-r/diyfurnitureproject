@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noise Test - diy furniture project</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <!-- Import the Model Viewer library -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <!-- Protected Model Loader (must load before product-loader) -->
+    <script src="model-loader.js" defer></script>
+    <!-- Product Loader (loads products from JSON, calls loadProtectedModels) -->
+    <script src="product-loader.js" defer></script>
+    <style>
+        #controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.95);
+            border: 1px solid #ccc;
+            padding: 12px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            z-index: 10000;
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 220px;
+        }
+        #controls h3 {
+            margin: 0 0 8px 0;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        #controls .section-title {
+            font-size: 9px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        #controls label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+            gap: 8px;
+        }
+        #controls input[type="number"] {
+            width: 65px;
+            padding: 2px 4px;
+            font-family: inherit;
+            font-size: 10px;
+            border: 1px solid #ccc;
+        }
+        #controls .section {
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        #controls .section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        #controls button {
+            width: 100%;
+            padding: 6px;
+            margin-top: 8px;
+            font-family: inherit;
+            font-size: 10px;
+            cursor: pointer;
+            background: #f5f5f5;
+            border: 1px solid #ccc;
+        }
+        #controls button:hover {
+            background: #eee;
+        }
+        #controls pre {
+            font-size: 8px;
+            background: #f9f9f9;
+            padding: 6px;
+            margin-top: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <!-- Controls Panel -->
+    <div id="controls">
+        <h3>Noise Settings</h3>
+
+        <div class="section">
+            <div class="section-title">Global</div>
+            <label>Scale <input type="number" id="grainScale" value="0.0008" step="0.0001"></label>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Paper Fibers (FBM)</div>
+            <label>Frequency <input type="number" id="fibersFreq" value="4.0" step="0.5"></label>
+            <label>Amplitude <input type="number" id="fibersAmp" value="0.03" step="0.005"></label>
+            <label>Octaves <input type="number" id="fibersOctaves" value="4" step="1" min="1" max="8"></label>
+            <label>Lacunarity <input type="number" id="fibersLacunarity" value="2.0" step="0.1"></label>
+            <label>Persistence <input type="number" id="fibersPersistence" value="0.5" step="0.05"></label>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Fine Grain</div>
+            <label>Frequency <input type="number" id="microFreq" value="150.0" step="10"></label>
+            <label>Amplitude <input type="number" id="microAmp" value="0.035" step="0.005"></label>
+            <label>Sharpness <input type="number" id="microSharpness" value="1.0" step="0.1"></label>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Extra Fine Grain</div>
+            <label>Frequency <input type="number" id="microFreq2" value="400.0" step="20"></label>
+            <label>Amplitude <input type="number" id="microAmp2" value="0.02" step="0.005"></label>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Specks / Dust</div>
+            <label>Frequency <input type="number" id="speckFreq" value="50.0" step="5"></label>
+            <label>Threshold <input type="number" id="speckThreshold" value="0.97" step="0.005"></label>
+            <label>Darkness <input type="number" id="speckStrength" value="0.04" step="0.005"></label>
+            <label>Softness <input type="number" id="speckSoftness" value="0.02" step="0.005"></label>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Large Blotches</div>
+            <label>Frequency <input type="number" id="blotchFreq" value="1.5" step="0.1"></label>
+            <label>Threshold <input type="number" id="blotchThreshold" value="0.6" step="0.02"></label>
+            <label>Strength <input type="number" id="blotchStrength" value="0.01" step="0.005"></label>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Base Color (0-1)</div>
+            <label>Red <input type="number" id="baseR" value="0.915" step="0.005"></label>
+            <label>Green <input type="number" id="baseG" value="0.905" step="0.005"></label>
+            <label>Blue <input type="number" id="baseB" value="0.885" step="0.005"></label>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Output</div>
+            <label>Brightness <input type="number" id="brightness" value="0.0" step="0.01"></label>
+            <label>Contrast <input type="number" id="contrast" value="1.0" step="0.05"></label>
+        </div>
+
+        <button id="exportBtn">Export Settings</button>
+        <pre id="exportOutput" style="display:none;"></pre>
+    </div>
+
+    <!-- WebGL Newsprint Background -->
+    <canvas id="bg"></canvas>
+    <script>
+    (() => {
+      const canvas = document.getElementById("bg");
+      const gl = canvas.getContext("webgl", { antialias: false, alpha: true, premultipliedAlpha: false });
+      if (!gl) return;
+
+      Object.assign(canvas.style, {
+        position: "absolute",
+        top: "0",
+        left: "0",
+        width: "100%",
+        zIndex: "-1",
+        pointerEvents: "none"
+      });
+
+      const vert = `
+        attribute vec2 aPos;
+        varying vec2 vUv;
+        void main(){
+          vUv = aPos * 0.5 + 0.5;
+          gl_Position = vec4(aPos, 0.0, 1.0);
+        }
+      `;
+
+      const frag = `
+        precision highp float;
+        varying vec2 vUv;
+        uniform vec2 uRes;
+
+        // Global
+        uniform float uGrainScale;
+
+        // Fibers (FBM)
+        uniform float uFibersFreq;
+        uniform float uFibersAmp;
+        uniform float uFibersOctaves;
+        uniform float uFibersLacunarity;
+        uniform float uFibersPersistence;
+
+        // Fine grain
+        uniform float uMicroFreq;
+        uniform float uMicroAmp;
+        uniform float uMicroSharpness;
+
+        // Extra fine grain
+        uniform float uMicroFreq2;
+        uniform float uMicroAmp2;
+
+        // Specks
+        uniform float uSpeckFreq;
+        uniform float uSpeckThreshold;
+        uniform float uSpeckStrength;
+        uniform float uSpeckSoftness;
+
+        // Blotches
+        uniform float uBlotchFreq;
+        uniform float uBlotchThreshold;
+        uniform float uBlotchStrength;
+
+        // Color
+        uniform vec3 uBaseColor;
+        uniform float uBrightness;
+        uniform float uContrast;
+
+        // Hash functions
+        float hash(vec2 p){
+          p = fract(p * vec2(123.34, 456.21));
+          p += dot(p, p + 45.32);
+          return fract(p.x * p.y);
+        }
+
+        // Value noise with smooth interpolation
+        float noise(vec2 p){
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          float a = hash(i + vec2(0.0, 0.0));
+          float b = hash(i + vec2(1.0, 0.0));
+          float c = hash(i + vec2(0.0, 1.0));
+          float d = hash(i + vec2(1.0, 1.0));
+          return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+        }
+
+        // FBM with configurable parameters
+        float fbm(vec2 p, float octaves, float lacunarity, float persistence){
+          float v = 0.0;
+          float a = 0.5;
+          float totalAmp = 0.0;
+          for(int i = 0; i < 8; i++){
+            if(float(i) >= octaves) break;
+            v += a * noise(p);
+            totalAmp += a;
+            p *= lacunarity;
+            a *= persistence;
+          }
+          return v / totalAmp; // Normalize
+        }
+
+        void main(){
+          vec2 px = (vUv * uRes) * uGrainScale;
+
+          // Paper fibers (large scale variation)
+          float fibers = fbm(px * uFibersFreq, uFibersOctaves, uFibersLacunarity, uFibersPersistence);
+          fibers = (fibers - 0.5) * uFibersAmp;
+
+          // Fine grain
+          float micro = noise(px * uMicroFreq);
+          micro = (micro - 0.5);
+          micro = sign(micro) * pow(abs(micro), 1.0 / uMicroSharpness); // Sharpness curve
+          micro *= uMicroAmp;
+
+          // Extra fine grain
+          float micro2 = noise(px * uMicroFreq2);
+          micro2 = (micro2 - 0.5) * uMicroAmp2;
+
+          // Specks (small dark dots)
+          float speckNoise = noise(px * uSpeckFreq);
+          float speck = smoothstep(uSpeckThreshold - uSpeckSoftness, uSpeckThreshold + uSpeckSoftness, speckNoise);
+          speck *= uSpeckStrength;
+
+          // Large blotches (subtle variation)
+          float blotchNoise = fbm(px * uBlotchFreq, 3.0, 2.0, 0.5);
+          float blotch = smoothstep(uBlotchThreshold - 0.1, uBlotchThreshold + 0.1, blotchNoise);
+          blotch *= uBlotchStrength;
+
+          // Combine
+          vec3 col = uBaseColor;
+          col += fibers;
+          col += micro;
+          col += micro2;
+          col -= speck;
+          col -= blotch;
+
+          // Output adjustments
+          col += uBrightness;
+          col = (col - 0.5) * uContrast + 0.5;
+
+          gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+        }
+      `;
+
+      function compile(type, src){
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)){
+          console.error(gl.getShaderInfoLog(s));
+          gl.deleteShader(s);
+          return null;
+        }
+        return s;
+      }
+
+      const vs = compile(gl.VERTEX_SHADER, vert);
+      const fs = compile(gl.FRAGMENT_SHADER, frag);
+      const prog = gl.createProgram();
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      gl.useProgram(prog);
+
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        -1, -1,  1, -1, -1,  1,
+        -1,  1,  1, -1,  1,  1
+      ]), gl.STATIC_DRAW);
+
+      const aPos = gl.getAttribLocation(prog, "aPos");
+      gl.enableVertexAttribArray(aPos);
+      gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+      // Uniform locations
+      const uniforms = {
+        uRes: gl.getUniformLocation(prog, "uRes"),
+        uGrainScale: gl.getUniformLocation(prog, "uGrainScale"),
+        uFibersFreq: gl.getUniformLocation(prog, "uFibersFreq"),
+        uFibersAmp: gl.getUniformLocation(prog, "uFibersAmp"),
+        uFibersOctaves: gl.getUniformLocation(prog, "uFibersOctaves"),
+        uFibersLacunarity: gl.getUniformLocation(prog, "uFibersLacunarity"),
+        uFibersPersistence: gl.getUniformLocation(prog, "uFibersPersistence"),
+        uMicroFreq: gl.getUniformLocation(prog, "uMicroFreq"),
+        uMicroAmp: gl.getUniformLocation(prog, "uMicroAmp"),
+        uMicroSharpness: gl.getUniformLocation(prog, "uMicroSharpness"),
+        uMicroFreq2: gl.getUniformLocation(prog, "uMicroFreq2"),
+        uMicroAmp2: gl.getUniformLocation(prog, "uMicroAmp2"),
+        uSpeckFreq: gl.getUniformLocation(prog, "uSpeckFreq"),
+        uSpeckThreshold: gl.getUniformLocation(prog, "uSpeckThreshold"),
+        uSpeckStrength: gl.getUniformLocation(prog, "uSpeckStrength"),
+        uSpeckSoftness: gl.getUniformLocation(prog, "uSpeckSoftness"),
+        uBlotchFreq: gl.getUniformLocation(prog, "uBlotchFreq"),
+        uBlotchThreshold: gl.getUniformLocation(prog, "uBlotchThreshold"),
+        uBlotchStrength: gl.getUniformLocation(prog, "uBlotchStrength"),
+        uBaseColor: gl.getUniformLocation(prog, "uBaseColor"),
+        uBrightness: gl.getUniformLocation(prog, "uBrightness"),
+        uContrast: gl.getUniformLocation(prog, "uContrast"),
+      };
+
+      // Input elements mapping
+      const inputIds = [
+        'grainScale', 'fibersFreq', 'fibersAmp', 'fibersOctaves', 'fibersLacunarity', 'fibersPersistence',
+        'microFreq', 'microAmp', 'microSharpness', 'microFreq2', 'microAmp2',
+        'speckFreq', 'speckThreshold', 'speckStrength', 'speckSoftness',
+        'blotchFreq', 'blotchThreshold', 'blotchStrength',
+        'baseR', 'baseG', 'baseB', 'brightness', 'contrast'
+      ];
+
+      const inputs = {};
+      inputIds.forEach(id => {
+        inputs[id] = document.getElementById(id);
+      });
+
+      function updateUniforms(){
+        gl.uniform1f(uniforms.uGrainScale, parseFloat(inputs.grainScale.value));
+        gl.uniform1f(uniforms.uFibersFreq, parseFloat(inputs.fibersFreq.value));
+        gl.uniform1f(uniforms.uFibersAmp, parseFloat(inputs.fibersAmp.value));
+        gl.uniform1f(uniforms.uFibersOctaves, parseFloat(inputs.fibersOctaves.value));
+        gl.uniform1f(uniforms.uFibersLacunarity, parseFloat(inputs.fibersLacunarity.value));
+        gl.uniform1f(uniforms.uFibersPersistence, parseFloat(inputs.fibersPersistence.value));
+        gl.uniform1f(uniforms.uMicroFreq, parseFloat(inputs.microFreq.value));
+        gl.uniform1f(uniforms.uMicroAmp, parseFloat(inputs.microAmp.value));
+        gl.uniform1f(uniforms.uMicroSharpness, parseFloat(inputs.microSharpness.value));
+        gl.uniform1f(uniforms.uMicroFreq2, parseFloat(inputs.microFreq2.value));
+        gl.uniform1f(uniforms.uMicroAmp2, parseFloat(inputs.microAmp2.value));
+        gl.uniform1f(uniforms.uSpeckFreq, parseFloat(inputs.speckFreq.value));
+        gl.uniform1f(uniforms.uSpeckThreshold, parseFloat(inputs.speckThreshold.value));
+        gl.uniform1f(uniforms.uSpeckStrength, parseFloat(inputs.speckStrength.value));
+        gl.uniform1f(uniforms.uSpeckSoftness, parseFloat(inputs.speckSoftness.value));
+        gl.uniform1f(uniforms.uBlotchFreq, parseFloat(inputs.blotchFreq.value));
+        gl.uniform1f(uniforms.uBlotchThreshold, parseFloat(inputs.blotchThreshold.value));
+        gl.uniform1f(uniforms.uBlotchStrength, parseFloat(inputs.blotchStrength.value));
+        gl.uniform3f(uniforms.uBaseColor,
+          parseFloat(inputs.baseR.value),
+          parseFloat(inputs.baseG.value),
+          parseFloat(inputs.baseB.value)
+        );
+        gl.uniform1f(uniforms.uBrightness, parseFloat(inputs.brightness.value));
+        gl.uniform1f(uniforms.uContrast, parseFloat(inputs.contrast.value));
+      }
+
+      // Listen for input changes
+      Object.values(inputs).forEach(input => {
+        if(input) input.addEventListener("input", () => {
+          updateUniforms();
+          render();
+        });
+      });
+
+      // Export button
+      document.getElementById('exportBtn').addEventListener('click', () => {
+        const settings = {};
+        inputIds.forEach(id => {
+          settings[id] = parseFloat(inputs[id].value);
+        });
+        const output = document.getElementById('exportOutput');
+        output.style.display = 'block';
+        output.textContent = JSON.stringify(settings, null, 2);
+      });
+
+      updateUniforms();
+
+      function resize(){
+        const dpr = Math.min(devicePixelRatio || 1, 2);
+        const docHeight = Math.max(
+          document.body.scrollHeight,
+          document.body.offsetHeight,
+          document.documentElement.clientHeight,
+          document.documentElement.scrollHeight,
+          document.documentElement.offsetHeight
+        );
+        canvas.width  = Math.floor(innerWidth * dpr);
+        canvas.height = Math.floor(docHeight * dpr);
+        canvas.style.height = docHeight + "px";
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.uniform2f(uniforms.uRes, canvas.width, canvas.height);
+      }
+
+      function render(){
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+      }
+
+      function resizeAndRender(){
+        resize();
+        render();
+      }
+
+      window.addEventListener("resize", resizeAndRender);
+      window.addEventListener("load", resizeAndRender);
+      new MutationObserver(resizeAndRender).observe(document.body, { childList: true, subtree: true });
+      resizeAndRender();
+
+    })();
+    </script>
+
+    <div class="page-grid">
+        <!-- Left Sidebar: Profile -->
+        <aside class="sidebar-left">
+            <div class="sidebar-header">diy furniture project</div>
+            <hr class="hairline">
+
+            <div class="sidebar-section">
+                <p class="sidebar-text">Material and virtual design that seeks to make building durable furniture more accessible.</p>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-label">PAGES</div>
+                <a href="main.html" class="sidebar-link">Home</a><br>
+                <a href="about.html" class="sidebar-link">About</a><br>
+                <a href="suggested-tools.html" class="sidebar-link">Suggested Tools</a><br>
+                <a href="faqs.html" class="sidebar-link">FAQs</a>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-label">CONTACT</div>
+                <a href="mailto:wnosworthy@gmail.com" class="sidebar-link">wnosworthy@gmail.com</a><br>
+                <a href="https://instagram.com/walkernotsoworthy" class="sidebar-link">Instagram</a>
+            </div>
+        </aside>
+
+        <!-- Main Content: Work Feed -->
+        <main class="main-content">
+            <!-- Products loaded dynamically from products.json -->
+            <div class="models-grid">
+                <!-- Products will be loaded here by product-loader.js -->
+            </div>
+        </main>
+
+    </div>
+</body>
+</html>

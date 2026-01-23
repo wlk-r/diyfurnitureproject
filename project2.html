@@ -8,9 +8,30 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <!-- Import map for Three.js (required by model-viewer-effects) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.166.0/build/three.module.js",
+            "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.166.0/examples/jsm/"
+        }
+    }
+    </script>
+    <!-- Model Viewer -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <!-- Model Viewer Effects addon -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects/dist/model-viewer-effects.min.js"></script>
     <script src="model-loader.js" defer></script>
     <script src="product-loader.js" defer></script>
+
+    <style>
+        /* Hide model-viewer's default progress bar */
+        model-viewer::part(default-progress-bar) {
+            display: none;
+        }
+    </style>
+
     <script>
         // Load product details when page loads
         document.addEventListener('DOMContentLoaded', () => {
@@ -22,13 +43,28 @@
     <!-- Full-bleed model viewer -->
     <div class="fullbleed-viewer">
         <model-viewer
+            id="detail-viewer"
             data-model="model2.glb"
             alt="Model 2"
             camera-controls
             auto-rotate
             shadow-intensity="1"
             exposure="1"
+            tone-mapping="aces"
             ar>
+            <effect-composer render-mode="quality">
+                <pixelate-effect
+                    id="detail-pixelate"
+                    blend-mode="default"
+                    granularity="50">
+                </pixelate-effect>
+                <color-grade-effect
+                    blend-mode="default"
+                    brightness="0"
+                    contrast="0"
+                    saturation="-.1">
+                </color-grade-effect>
+            </effect-composer>
         </model-viewer>
     </div>
 
@@ -60,5 +96,78 @@
 
         <div class="buy-button-container"></div>
     </div>
+
+    <script type="module">
+    // Pixelate effect for detail page
+    const SETTINGS = {
+        startGranularity: 50,
+        endGranularity: 15,
+        duration: 3000,
+        fadeDelay: 500,
+        updateRate: 50
+    };
+
+    const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    function startPixelateAnimation() {
+        const viewer = document.getElementById('detail-viewer');
+        const pixelateEffect = document.getElementById('detail-pixelate');
+        if (!viewer || !pixelateEffect) return;
+
+        pixelateEffect.setAttribute('granularity', SETTINGS.startGranularity);
+        pixelateEffect.setAttribute('blend-mode', 'default');
+
+        const startTime = performance.now();
+        const startGran = SETTINGS.startGranularity;
+        const endGran = SETTINGS.endGranularity;
+
+        const animate = () => {
+            const elapsed = performance.now() - startTime;
+            const progress = Math.min(1, elapsed / SETTINGS.duration);
+            const easedProgress = easeInOut(progress);
+
+            const currentGranularity = Math.round(startGran - (startGran - endGran) * easedProgress);
+            pixelateEffect.setAttribute('granularity', currentGranularity);
+
+            if (progress < 1) {
+                setTimeout(animate, SETTINGS.updateRate);
+            } else {
+                // Animation complete - remove effect-composer and tone-mapping
+                const effectComposer = viewer.querySelector('effect-composer');
+                if (effectComposer) {
+                    effectComposer.remove();
+                }
+                viewer.removeAttribute('tone-mapping');
+                console.log('[EFFECT] Detail viewer animation complete');
+            }
+        };
+
+        setTimeout(animate, SETTINGS.fadeDelay);
+    }
+
+    // Watch for materials-ready class
+    const viewer = document.getElementById('detail-viewer');
+    if (viewer) {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    if (viewer.classList.contains('materials-ready')) {
+                        console.log('[EFFECT] Detail viewer materials ready, starting animation');
+                        startPixelateAnimation();
+                        observer.disconnect();
+                    }
+                }
+            });
+        });
+
+        observer.observe(viewer, { attributes: true, attributeFilter: ['class'] });
+
+        // Fallback: if materials-ready is already set
+        if (viewer.classList.contains('materials-ready')) {
+            startPixelateAnimation();
+            observer.disconnect();
+        }
+    }
+    </script>
 </body>
 </html>
