@@ -36,7 +36,9 @@
       "Bash(powershell -Command \"Remove-Item -LiteralPath ''\\\\?\\\\C:\\\\Users\\\\Walker\\\\Documents\\\\diyfurnitureproject\\\\models\\\\nul'' -Force\")",
       "Bash(cmd //c \"del \\\\?\\\\C:\\\\Users\\\\Walker\\\\Documents\\\\diyfurnitureproject\\\\models\\\\nul\")",
       "Bash(python -c \"import os; os.remove\\(r''\\\\?\\\\C:\\\\Users\\\\Walker\\\\Documents\\\\diyfurnitureproject\\\\models\\\\nul''\\)\")",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "WebFetch(domain:diyfurnitureproject.com)",
+      "Bash(curl:*)"
     ]
   }
 }
