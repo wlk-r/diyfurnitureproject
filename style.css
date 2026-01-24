@@ -561,6 +561,11 @@ model-viewer {
     .project-title-large {
         font-size: 13px;
     }
+
+    /* Shift model down within the full-bleed viewer on mobile */
+    .project-detail-page .fullbleed-viewer model-viewer {
+        transform: translateY(15%);
+    }
 }
 
 /* Make project number clickable on home page */
