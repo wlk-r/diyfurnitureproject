@@ -21,6 +21,9 @@ const MATERIAL_SOURCES = {
 };
 const DEFAULT_MATERIAL = 'plywood';
 
+// Camera control settings (comment out to disable)
+const CAMERA_INTERPOLATION_DECAY = 100; // Default is 50, higher = more inertia
+
 // Check if running in local development mode
 const IS_LOCAL = window.location.hostname === 'localhost' ||
                  window.location.hostname === '127.0.0.1' ||
@@ -367,3 +370,32 @@ if (isModelDetailPage) {
   }
 }
 // On index page, product-loader will call loadProtectedModels() after creating products
+
+/**
+ * Apply camera settings to all model-viewers
+ * To revert: comment out the CAMERA_INTERPOLATION_DECAY line at the top of this file
+ */
+function applyCameraSettings() {
+  if (typeof CAMERA_INTERPOLATION_DECAY !== 'undefined') {
+    document.querySelectorAll('model-viewer').forEach(viewer => {
+      viewer.setAttribute('interpolation-decay', CAMERA_INTERPOLATION_DECAY);
+    });
+    console.log('[CAMERA] Applied interpolation-decay:', CAMERA_INTERPOLATION_DECAY);
+  }
+}
+
+// Apply camera settings when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', applyCameraSettings);
+} else {
+  applyCameraSettings();
+}
+
+// Re-apply after products load (for dynamically created model-viewers)
+const originalLoadProtectedModels = typeof loadProtectedModels !== 'undefined' ? loadProtectedModels : null;
+if (originalLoadProtectedModels) {
+  window.loadProtectedModels = async function() {
+    await originalLoadProtectedModels();
+    applyCameraSettings();
+  };
+}
