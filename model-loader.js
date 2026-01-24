@@ -190,41 +190,25 @@ async function initMaterialSource() {
   return materialSourceReady;
 }
 
+// R2 public bucket URL for models
+const MODELS_R2_URL = 'https://pub-fe05b24a16c144acaac1543477b4828c.r2.dev';
+
 /**
- * Get signed URL for a model
+ * Get URL for a model - local in development, R2 in production
  */
 async function getSignedModelUrl(modelName) {
-  // Always try local first (works in both local and production if file exists)
-  const localExists = await checkLocalModelExists(modelName);
-
-  if (localExists) {
-    console.log(`[LOCAL] Loading model from models folder: ${modelName}`);
-    return `${MODELS_LOCAL_PATH}/${modelName}`;
-  }
-
-  // If not found locally, use production worker
-  console.log(`[PRODUCTION] Loading model from worker: ${modelName}`);
-  try {
-    const response = await fetch(`${WORKER_URL}/api/model-url`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ modelName })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to get signed URL: ${response.statusText}`);
+  // In local development, try local folder first
+  if (IS_LOCAL) {
+    const localExists = await checkLocalModelExists(modelName);
+    if (localExists) {
+      console.log(`[LOCAL] Loading model from models folder: ${modelName}`);
+      return `${MODELS_LOCAL_PATH}/${modelName}`;
     }
-
-    const data = await response.json();
-    return data.url;
-
-  } catch (error) {
-    console.error('Error fetching signed URL:', error);
-    // Fallback to direct R2 URL if worker fails
-    return `https://pub-fe05b24a16c144acaac1543477b4828c.r2.dev/${modelName}`;
   }
+
+  // In production (or if local file doesn't exist), use R2 directly
+  console.log(`[PRODUCTION] Loading model from R2: ${modelName}`);
+  return `${MODELS_R2_URL}/${modelName}`;
 }
 
 /**
