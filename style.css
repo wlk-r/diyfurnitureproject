@@ -64,6 +64,19 @@ model-viewer[data-model] {
 
 /* Note: model-viewer hiding is now handled globally above */
 
+/* === Screen Reader Only (SEO H1) === */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 /* === Reset & Base === */
 * {
     margin: 0;
@@ -160,42 +173,6 @@ body {
 
 .sidebar-link:hover {
     opacity: 0.6;
-}
-
-/* === Right Sidebar: CV === */
-.cv-section {
-    margin-bottom: 36px;
-}
-
-.cv-category {
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    margin-bottom: 12px;
-    font-weight: 400;
-}
-
-.cv-entries {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-.cv-entry {
-    font-size: 11px;
-    line-height: 1.4;
-}
-
-.cv-role {
-    font-weight: 400;
-}
-
-.cv-place {
-    color: #666;
-}
-
-.cv-year {
-    color: #888;
-    font-size: 10px;
 }
 
 /* === Main Content: Models Grid === */

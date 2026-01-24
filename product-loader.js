@@ -225,8 +225,29 @@ async function loadProductDetail(productId) {
       return;
     }
 
-    // Update page title
-    document.title = `${product.name} — diy furniture project`;
+    // Update page title and meta tags for SEO
+    const seoTitle = `${product.name} - DIY Furniture Plan | Build Guide`;
+    const seoDescription = product.fullDescription ? product.fullDescription[0].substring(0, 155) + '...' : `Build your own ${product.name} with our detailed DIY furniture plan. Includes 3D model, cut list, and assembly instructions.`;
+
+    document.title = seoTitle;
+
+    // Update meta description
+    const metaDesc = document.getElementById('meta-description');
+    if (metaDesc) metaDesc.setAttribute('content', seoDescription);
+
+    // Update Open Graph tags
+    const ogTitle = document.getElementById('og-title');
+    const ogDesc = document.getElementById('og-description');
+    const ogUrl = document.getElementById('og-url');
+    if (ogTitle) ogTitle.setAttribute('content', seoTitle);
+    if (ogDesc) ogDesc.setAttribute('content', seoDescription);
+    if (ogUrl) ogUrl.setAttribute('content', `https://diyfurnitureproject.com/project.html?id=${productId}`);
+
+    // Update Twitter tags
+    const twitterTitle = document.getElementById('twitter-title');
+    const twitterDesc = document.getElementById('twitter-description');
+    if (twitterTitle) twitterTitle.setAttribute('content', seoTitle);
+    if (twitterDesc) twitterDesc.setAttribute('content', seoDescription);
 
     // Update model viewer
     const viewer = document.querySelector('.fullbleed-viewer model-viewer');

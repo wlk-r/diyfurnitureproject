@@ -1,0 +1,7 @@
+# robots.txt for diyfurnitureproject.com
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://diyfurnitureproject.com/sitemap.xml
