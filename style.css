@@ -71,12 +71,15 @@ model-viewer[data-model] {
     box-sizing: border-box;
 }
 
+html {
+    background-color: #e7e8e9;
+}
+
 body {
     font-family: 'IBM Plex Mono', 'Courier New', monospace;
     font-size: 11px;
     line-height: 1.6;
     color: #1f1f1f;
-    background-color: #f7f5ee;
     font-weight: 300;
 }
 
