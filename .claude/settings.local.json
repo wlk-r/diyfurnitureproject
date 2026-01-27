@@ -38,7 +38,8 @@
       "Bash(python -c \"import os; os.remove\\(r''\\\\?\\\\C:\\\\Users\\\\Walker\\\\Documents\\\\diyfurnitureproject\\\\models\\\\nul''\\)\")",
       "Bash(wc:*)",
       "WebFetch(domain:diyfurnitureproject.com)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(wrangler secret list:*)"
     ]
   }
 }

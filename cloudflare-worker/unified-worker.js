@@ -167,10 +167,10 @@ async function handlePDFWebhook(request, env) {
 
   // Generate watermarked PDF
   try {
-    const templateName = getTemplateForProduct(productId);
+    const productInfo = getTemplateForProduct(productId);
     const watermarkedPDF = await generateWatermarkedPDF(
       env.PDF_BUCKET,
-      templateName,
+      productInfo.template,
       {
         orderId,
         customerEmail,
@@ -188,10 +188,20 @@ async function handlePDFWebhook(request, env) {
 
     console.log('PDF generated:', filename);
 
+    // Send email with download link
+    const emailSent = await sendPurchaseEmail(
+      customerEmail,
+      orderId,
+      downloadUrl,
+      productInfo.name,
+      env
+    );
+
     return new Response(JSON.stringify({
       success: true,
       downloadUrl,
-      filename
+      filename,
+      emailSent
     }), {
       headers: { 'Content-Type': 'application/json' }
     });
@@ -286,15 +296,79 @@ async function verifyWebhookSignature(payload, signature, secret) {
 }
 
 /**
- * Map product IDs to PDF templates
+ * Map product IDs to PDF templates and product names
  */
 function getTemplateForProduct(productId) {
-  const templates = {
-    // Add your Lemon Squeezy product IDs here
-    // '12345': 'templates/chair-plans.pdf',
-    // '12346': 'templates/table-plans.pdf',
+  const products = {
+    // Lemon Squeezy product IDs mapped to PDF templates
+    '796585': { template: 'templates/workbench-plans.pdf', name: 'Workbench' },
   };
-  return templates[productId] || 'templates/default-template.pdf';
+  return products[productId] || { template: 'templates/default-template.pdf', name: 'Furniture Plans' };
+}
+
+/**
+ * Send purchase confirmation email with download link via Resend
+ */
+async function sendPurchaseEmail(to, orderId, downloadUrl, productName, env) {
+  if (!env.RESEND_API_KEY) {
+    console.error('RESEND_API_KEY not configured');
+    return false;
+  }
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: 'DIY Furniture Project <orders@diyfurnitureproject.com>',
+      reply_to: 'wnosworthy@gmail.com',
+      to: [to],
+      subject: `Your ${productName} Plans - Order #${orderId}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .button { display: inline-block; background: #000; color: #fff; padding: 14px 28px; text-decoration: none; font-weight: 500; margin: 20px 0; }
+            .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Thank you for your purchase!</h1>
+            </div>
+            <p>Hi there,</p>
+            <p>Your <strong>${productName}</strong> furniture plans are ready to download. This PDF has been personalized with your order information.</p>
+            <p style="text-align: center;">
+              <a href="${downloadUrl}" class="button">Download Your Plans</a>
+            </p>
+            <p>If the button doesn't work, copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; font-size: 12px; color: #666;">${downloadUrl}</p>
+            <div class="footer">
+              <p>Order #${orderId}</p>
+              <p>DIY Furniture Project</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Email send failed:', errorText);
+    return false;
+  }
+
+  console.log('Purchase email sent to:', to);
+  return true;
 }
 
 /**
@@ -311,32 +385,46 @@ async function generateWatermarkedPDF(bucket, templateName, watermarkData) {
   const templateBytes = await templateObject.arrayBuffer();
   const pdfDoc = await PDFDocument.load(templateBytes);
 
+  // Try to load IBM Plex Mono font, fallback to Courier
+  let font;
+  try {
+    const fontObject = await bucket.get('fonts/IBMPlexMono-Regular.ttf');
+    if (fontObject) {
+      const fontBytes = await fontObject.arrayBuffer();
+      font = await pdfDoc.embedFont(fontBytes);
+    } else {
+      font = await pdfDoc.embedFont(StandardFonts.Courier);
+    }
+  } catch (e) {
+    console.error('Font loading error, using fallback:', e);
+    font = await pdfDoc.embedFont(StandardFonts.Courier);
+  }
+
   // Add watermarks to all pages
   const pages = pdfDoc.getPages();
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
   for (const page of pages) {
     const { width, height } = page.getSize();
+    const stampText = `Order: ${watermarkData.orderId} | ${watermarkData.customerEmail} | ${watermarkData.date}`;
+    const fontSize = 7;
+    const textWidth = font.widthOfTextAtSize(stampText, fontSize);
 
-    // Footer watermark (small, bottom right)
-    const footerText = `Order: ${watermarkData.orderId} | ${watermarkData.customerEmail} | ${watermarkData.date}`;
-    page.drawText(footerText, {
-      x: 50,
-      y: 30,
-      size: 8,
+    // Bottom-left stamp: 0.25" from left, centered in 0.25" bottom margin
+    page.drawText(stampText, {
+      x: 18,
+      y: 6,
+      size: fontSize,
       font,
       color: rgb(0.5, 0.5, 0.5),
     });
 
-    // Diagonal watermark (large, faint, center)
-    page.drawText(watermarkData.customerEmail, {
-      x: width / 2 - 150,
-      y: height / 2,
-      size: 40,
+    // Top-right stamp: 0.25" from right, centered in 0.25" top margin
+    page.drawText(stampText, {
+      x: width - 18 - textWidth,
+      y: height - 12,
+      size: fontSize,
       font,
-      color: rgb(0.9, 0.9, 0.9),
-      opacity: 0.3,
-      rotate: degrees(-45),
+      color: rgb(0.5, 0.5, 0.5),
     });
   }
 
