@@ -24,6 +24,8 @@ const CAMERA_INTERPOLATION_DECAY = 100; // Default is 50, higher = more inertia
 // Check if running in local development mode
 const IS_LOCAL = window.location.hostname === 'localhost' ||
                  window.location.hostname === '127.0.0.1' ||
+                 window.location.hostname.startsWith('192.168.') ||
+                 window.location.hostname.startsWith('10.') ||
                  window.location.protocol === 'file:';
 
 /**
@@ -194,16 +196,13 @@ const MODELS_R2_URL = 'https://pub-fe05b24a16c144acaac1543477b4828c.r2.dev';
  * Get URL for a model - local in development, R2 in production
  */
 async function getModelUrl(modelName) {
-  // In local development, try local folder first
   if (IS_LOCAL) {
-    const localExists = await checkLocalModelExists(modelName);
-    if (localExists) {
-      console.log(`[LOCAL] Loading model from models folder: ${modelName}`);
-      return `${MODELS_LOCAL_PATH}/${modelName}`;
-    }
+    // In local dev, always use local path (dev server proxies to R2 if needed)
+    console.log(`[LOCAL] Loading model: ${modelName}`);
+    return `${MODELS_LOCAL_PATH}/${modelName}`;
   }
 
-  // In production (or if local file doesn't exist), use R2 directly
+  // In production, use R2 directly
   console.log(`[PRODUCTION] Loading model from R2: ${modelName}`);
   return `${MODELS_R2_URL}/${modelName}`;
 }
