@@ -3,77 +3,7 @@
  * Makes it easy to add/edit products without touching HTML
  */
 
-// Pixelate effect settings
-const PIXELATE_SETTINGS = {
-  startGranularity: 50,
-  endGranularity: 15,
-  duration: 3000,
-  fadeDelay: 500,
-  updateRate: 50
-};
-
-// Ease in-out function (cubic)
-const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-// Pixelate effect manager
-const PixelateEffect = {
-  instances: [],
-  animationIntervals: {},
-
-  startAnimation(id) {
-    const instance = this.instances.find(i => i.id === id);
-    if (!instance) return;
-
-    const { pixelateEffect } = instance;
-    instance.active = true;
-
-    // Set initial granularity
-    pixelateEffect.setAttribute('granularity', PIXELATE_SETTINGS.startGranularity);
-    pixelateEffect.setAttribute('blend-mode', 'default');
-
-    const startTime = performance.now();
-    const startGran = PIXELATE_SETTINGS.startGranularity;
-    const endGran = PIXELATE_SETTINGS.endGranularity;
-
-    const animate = () => {
-      if (!instance.active) return;
-
-      const elapsed = performance.now() - startTime;
-      const progress = Math.min(1, elapsed / PIXELATE_SETTINGS.duration);
-      const easedProgress = easeInOut(progress);
-
-      const currentGranularity = Math.round(startGran - (startGran - endGran) * easedProgress);
-      pixelateEffect.setAttribute('granularity', currentGranularity);
-
-      if (progress < 1) {
-        this.animationIntervals[id] = setTimeout(animate, PIXELATE_SETTINGS.updateRate);
-      } else {
-        // Animation complete - remove effect-composer and tone-mapping to restore original colors
-        const effectComposer = instance.viewer.querySelector('effect-composer');
-        if (effectComposer) {
-          effectComposer.remove();
-        }
-        instance.viewer.removeAttribute('tone-mapping');
-        instance.active = false;
-        console.log(`[EFFECT] Model ${id} animation complete, effect-composer removed`);
-      }
-    };
-
-    // Start with delay
-    setTimeout(animate, PIXELATE_SETTINGS.fadeDelay);
-  },
-
-  stopAnimation(id) {
-    if (this.animationIntervals[id]) {
-      clearTimeout(this.animationIntervals[id]);
-      delete this.animationIntervals[id];
-    }
-    const instance = this.instances.find(i => i.id === id);
-    if (instance) {
-      instance.active = false;
-    }
-  }
-};
+import { PixelateManager, PIXELATE_SETTINGS } from './pixelate-effect.js';
 
 /**
  * Load products and render them on the page
@@ -109,43 +39,15 @@ async function loadProducts() {
       const pixelateEffect = article.querySelector(`#pixelate-${index}`);
 
       if (viewer && pixelateEffect) {
-        // Store instance
-        PixelateEffect.instances.push({
-          id: index,
-          viewer,
-          pixelateEffect,
-          active: false
-        });
-
-        // Watch for materials-ready class (added by model-loader.js after materials applied)
-        const observer = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-              if (viewer.classList.contains('materials-ready')) {
-                // Materials are applied - start pixelate animation
-                console.log(`[EFFECT] Model ${index} materials ready, starting animation`);
-                PixelateEffect.startAnimation(index);
-                observer.disconnect();
-              }
-            }
-          });
-        });
-
-        observer.observe(viewer, { attributes: true, attributeFilter: ['class'] });
-
-        // Fallback: if materials-ready is already set
-        if (viewer.classList.contains('materials-ready')) {
-          PixelateEffect.startAnimation(index);
-          observer.disconnect();
-        }
+        PixelateManager.register(index, viewer, pixelateEffect);
       }
     });
 
     console.log(`Loaded ${products.length} products`);
 
     // Trigger model loading after products are created
-    if (typeof loadProtectedModels === 'function') {
-      loadProtectedModels();
+    if (typeof window.loadProtectedModels === 'function') {
+      window.loadProtectedModels();
     }
 
   } catch (error) {
@@ -316,6 +218,9 @@ function updateDetailRow(label, value) {
     }
   }
 }
+
+// Expose loadProductDetail globally for inline scripts (project.html)
+window.loadProductDetail = loadProductDetail;
 
 // Load products when page is ready (only on index pages with a grid)
 const isDetailPage = document.body.classList.contains('project-detail-page');

@@ -202,76 +202,11 @@
     </script>
 
     <script type="module">
-    // Pixelate effect for index page
-    const SETTINGS = {
-        startGranularity: 50,
-        endGranularity: 15,
-        duration: 3000,
-        fadeDelay: 500,
-        updateRate: 50
-    };
+    import { watchAndAnimate } from './pixelate-effect.js';
 
-    const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-    function startPixelateAnimation() {
-        const viewer = document.getElementById('comingSoonModel');
-        const pixelateEffect = document.getElementById('index-pixelate');
-        if (!viewer || !pixelateEffect) return;
-
-        pixelateEffect.setAttribute('granularity', SETTINGS.startGranularity);
-        pixelateEffect.setAttribute('blend-mode', 'default');
-
-        const startTime = performance.now();
-        const startGran = SETTINGS.startGranularity;
-        const endGran = SETTINGS.endGranularity;
-
-        const animate = () => {
-            const elapsed = performance.now() - startTime;
-            const progress = Math.min(1, elapsed / SETTINGS.duration);
-            const easedProgress = easeInOut(progress);
-
-            const currentGranularity = Math.round(startGran - (startGran - endGran) * easedProgress);
-            pixelateEffect.setAttribute('granularity', currentGranularity);
-
-            if (progress < 1) {
-                setTimeout(animate, SETTINGS.updateRate);
-            } else {
-                // Animation complete - remove effect-composer and tone-mapping
-                const effectComposer = viewer.querySelector('effect-composer');
-                if (effectComposer) {
-                    effectComposer.remove();
-                }
-                viewer.removeAttribute('tone-mapping');
-                console.log('[EFFECT] Index viewer animation complete');
-            }
-        };
-
-        setTimeout(animate, SETTINGS.fadeDelay);
-    }
-
-    // Watch for materials-ready class
     const viewer = document.getElementById('comingSoonModel');
-    if (viewer) {
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                    if (viewer.classList.contains('materials-ready')) {
-                        console.log('[EFFECT] Index viewer materials ready, starting animation');
-                        startPixelateAnimation();
-                        observer.disconnect();
-                    }
-                }
-            });
-        });
-
-        observer.observe(viewer, { attributes: true, attributeFilter: ['class'] });
-
-        // Fallback: if materials-ready is already set
-        if (viewer.classList.contains('materials-ready')) {
-            startPixelateAnimation();
-            observer.disconnect();
-        }
-    }
+    const pixelateEffect = document.getElementById('index-pixelate');
+    watchAndAnimate(viewer, pixelateEffect);
     </script>
 </body>
 </html>

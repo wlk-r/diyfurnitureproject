@@ -1,8 +1,8 @@
 /**
  * Unified Cloudflare Worker
  * Handles:
- * 1. Signed URLs for 3D model protection
- * 2. PDF watermarking for purchases
+ * 1. PDF watermarking for purchases (Lemon Squeezy webhook)
+ * 2. Watermarked PDF downloads
  * 3. License validation for premium content
  */
 
@@ -26,16 +26,6 @@ export default {
     }
 
     try {
-      // Route: Generate signed URL for 3D models
-      if (path === '/api/model-url' && request.method === 'POST') {
-        return await handleModelUrlRequest(request, env, corsHeaders);
-      }
-
-      // Route: Serve 3D models with signature verification
-      if (path.startsWith('/models/') && request.method === 'GET') {
-        return await handleModelDownload(request, env, corsHeaders);
-      }
-
       // Route: Lemon Squeezy webhook for PDF generation
       if (path === '/webhook' && request.method === 'POST') {
         return await handlePDFWebhook(request, env);
@@ -64,91 +54,28 @@ export default {
 };
 
 /**
- * Generate signed URL for 3D model access
- */
-async function handleModelUrlRequest(request, env, corsHeaders) {
-  const body = await request.json();
-  const { modelName } = body;
-
-  if (!modelName) {
-    return new Response(JSON.stringify({ error: 'modelName required' }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-  }
-
-  // Generate signature with expiration (1 hour)
-  const expiresAt = Date.now() + (60 * 60 * 1000); // 1 hour
-  const signature = await generateSignature(modelName, expiresAt, env.SIGNING_SECRET || 'default-secret');
-
-  const signedUrl = `${new URL(request.url).origin}/models/${modelName}?expires=${expiresAt}&signature=${signature}`;
-
-  return new Response(JSON.stringify({ url: signedUrl, expiresAt }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-  });
-}
-
-/**
- * Serve 3D model with signature verification
- */
-async function handleModelDownload(request, env, corsHeaders) {
-  const url = new URL(request.url);
-  const modelPath = url.pathname.replace('/models/', '');
-  const expires = url.searchParams.get('expires');
-  const signature = url.searchParams.get('signature');
-
-  // Verify signature
-  if (!expires || !signature) {
-    return new Response('Unauthorized: Missing signature', { status: 401 });
-  }
-
-  if (Date.now() > parseInt(expires)) {
-    return new Response('Unauthorized: URL expired', { status: 401 });
-  }
-
-  const expectedSignature = await generateSignature(modelPath, expires, env.SIGNING_SECRET || 'default-secret');
-  if (signature !== expectedSignature) {
-    return new Response('Unauthorized: Invalid signature', { status: 401 });
-  }
-
-  // Fetch model from R2
-  try {
-    const object = await env.MODELS_BUCKET.get(modelPath);
-
-    if (!object) {
-      return new Response('Model not found', { status: 404 });
-    }
-
-    return new Response(object.body, {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'model/gltf-binary',
-        'Cache-Control': 'private, max-age=3600',
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching model:', error);
-    return new Response('Error fetching model', { status: 500 });
-  }
-}
-
-/**
  * Handle Lemon Squeezy webhook for PDF generation
  */
 async function handlePDFWebhook(request, env) {
-  const payload = await request.json();
-
-  console.log('Webhook received:', JSON.stringify(payload));
+  // Read raw body for signature verification, then parse
+  const rawBody = await request.text();
 
   // Verify webhook signature (if secret is set)
   if (env.LEMON_SQUEEZY_WEBHOOK_SECRET) {
     const signature = request.headers.get('X-Signature');
-    const isValid = await verifyWebhookSignature(payload, signature, env.LEMON_SQUEEZY_WEBHOOK_SECRET);
+    const isValid = await verifyWebhookSignature(rawBody, signature, env.LEMON_SQUEEZY_WEBHOOK_SECRET);
 
     if (!isValid) {
+      console.error('Webhook signature verification failed');
       return new Response('Invalid signature', { status: 401 });
     }
+    console.log('Webhook signature verified');
+  } else {
+    console.warn('LEMON_SQUEEZY_WEBHOOK_SECRET not set — skipping signature verification');
   }
+
+  const payload = JSON.parse(rawBody);
+  console.log('Webhook received:', JSON.stringify(payload));
 
   // Only process order_created events
   if (payload.meta?.event_name !== 'order_created') {
@@ -265,34 +192,33 @@ async function handleLicenseValidation(request, env, corsHeaders) {
 }
 
 /**
- * Generate HMAC signature for URL signing
+ * Verify Lemon Squeezy webhook signature
+ * X-Signature header contains an HMAC-SHA256 hex digest of the raw request body
  */
-async function generateSignature(data, expires, secret) {
-  const encoder = new TextEncoder();
-  const keyData = encoder.encode(secret);
-  const message = encoder.encode(`${data}:${expires}`);
+async function verifyWebhookSignature(rawBody, signature, secret) {
+  if (!signature || !rawBody) return false;
 
+  const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
     'raw',
-    keyData,
+    encoder.encode(secret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']
   );
 
-  const signature = await crypto.subtle.sign('HMAC', key, message);
-  return Array.from(new Uint8Array(signature))
+  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(rawBody));
+  const expectedSignature = Array.from(new Uint8Array(sig))
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
-}
 
-/**
- * Verify Lemon Squeezy webhook signature
- */
-async function verifyWebhookSignature(payload, signature, secret) {
-  // TODO: Implement Lemon Squeezy signature verification
-  // See: https://docs.lemonsqueezy.com/help/webhooks#signing-requests
-  return true; // For now, accept all webhooks
+  // Constant-time comparison to prevent timing attacks
+  if (expectedSignature.length !== signature.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < expectedSignature.length; i++) {
+    mismatch |= expectedSignature.charCodeAt(i) ^ signature.charCodeAt(i);
+  }
+  return mismatch === 0;
 }
 
 /**

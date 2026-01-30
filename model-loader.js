@@ -4,9 +4,6 @@
  * Supports material slot system for dynamic texture application
  */
 
-// Configuration - UPDATE THIS AFTER DEPLOYING WORKER
-const WORKER_URL = 'https://diyfurniture-worker.wnosworthy.workers.dev';
-
 // Materials configuration
 // For production: R2 public URL (enable public access in Cloudflare Dashboard)
 // Format: https://pub-{hash}.r2.dev or custom domain
@@ -196,7 +193,7 @@ const MODELS_R2_URL = 'https://pub-fe05b24a16c144acaac1543477b4828c.r2.dev';
 /**
  * Get URL for a model - local in development, R2 in production
  */
-async function getSignedModelUrl(modelName) {
+async function getModelUrl(modelName) {
   // In local development, try local folder first
   if (IS_LOCAL) {
     const localExists = await checkLocalModelExists(modelName);
@@ -235,7 +232,7 @@ async function loadSingleModel(viewer) {
   const modelName = viewer.getAttribute('data-model');
   if (!modelName || viewer.id === 'material-source-viewer') return;
 
-  const signedUrl = await getSignedModelUrl(modelName);
+  const signedUrl = await getModelUrl(modelName);
   viewer.setAttribute('src', signedUrl);
 
   // Poll for model ready, then apply materials
@@ -302,7 +299,7 @@ async function loadModelSimple(viewer) {
 
   try {
     updateSpinnerProgress(viewer, 20);
-    const signedUrl = await getSignedModelUrl(modelName);
+    const signedUrl = await getModelUrl(modelName);
     updateSpinnerProgress(viewer, 40);
 
     const loadPromise = new Promise((resolve) => {
