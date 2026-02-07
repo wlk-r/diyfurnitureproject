@@ -251,13 +251,6 @@ body {
     font-weight: 300;
 }
 
-.model-price {
-    color: #1f1f1f;
-    font-weight: 400;
-    white-space: nowrap;
-    margin-left: 16px;
-}
-
 /* === Legacy Project Modules (kept for project detail pages) === */
 .project-module {
     margin-bottom: 64px;
@@ -559,12 +552,12 @@ a.project-number:hover {
     text-underline-offset: 2px;
 }
 
-/* === Buy Button === */
-.buy-button-container {
+/* === Download Button === */
+.download-button-container {
     margin-top: 20px;
 }
 
-.buy-button {
+.download-button {
     display: inline-block;
     padding: 12px 24px;
     background: #1f1f1f;
@@ -580,22 +573,22 @@ a.project-number:hover {
     transition: all 0.2s ease;
 }
 
-.buy-button:hover {
+.download-button:hover {
     background: white;
     color: #1f1f1f;
 }
 
-.buy-button:active {
+.download-button:active {
     transform: translateY(1px);
 }
 
-.buy-button-disabled {
+.download-button-disabled {
     background: #999;
     border-color: #999;
     cursor: not-allowed;
 }
 
-.buy-button-disabled:hover {
+.download-button-disabled:hover {
     background: #999;
     color: white;
 }

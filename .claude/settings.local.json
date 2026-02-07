@@ -39,7 +39,8 @@
       "Bash(wc:*)",
       "WebFetch(domain:diyfurnitureproject.com)",
       "Bash(curl:*)",
-      "Bash(wrangler secret list:*)"
+      "Bash(wrangler secret list:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }

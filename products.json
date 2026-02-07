@@ -3,12 +3,10 @@
     {
       "id": "5",
       "name": "Workbench",
-      "price": 10,
       "model": "workbench-00.glb",
       "year": "2025",
       "medium": "3/4\" pine plywood",
       "dimensions": "48\"w x 24\"d x 34\"h",
-      "checkoutUrl": "https://diyfurnitureproject.lemonsqueezy.com/checkout/buy/3617b4d0-c97f-4da6-a6aa-13af4adc1159",
       "shortDescription": "Sturdy workbench design with material slots for customizable finishes. Features dynamic material loading.",
       "fullDescription": [
         "A sturdy workbench design featuring dynamic material loading. This model demonstrates the material slot system where textures are applied at runtime.",
@@ -18,12 +16,10 @@
     {
       "id": "6",
       "name": "Queen Bed",
-      "price": 15,
       "model": "queenbed-00.glb",
       "year": "2025",
       "medium": "3/4\" pine plywood",
       "dimensions": "64\"w x 84\"l x 14\"h",
-      "checkoutUrl": "",
       "shortDescription": "Simple queen bed frame design built from plywood. Easy to assemble and disassemble.",
       "fullDescription": [
         "A queen bed frame design featuring clean lines and sturdy construction from 3/4\" plywood.",
@@ -33,12 +29,10 @@
     {
       "id": "7",
       "name": "Assembly Table",
-      "price": 10,
       "model": "assembly-00.glb",
       "year": "2025",
       "medium": "3/4\" pine plywood",
       "dimensions": "48\"w x 24\"d x 34\"h",
-      "checkoutUrl": "",
       "shortDescription": "Versatile assembly table for workshop projects. Sturdy construction with plywood materials.",
       "fullDescription": [
         "A versatile assembly table designed for workshop use. Features sturdy plywood construction for durability.",
@@ -48,12 +42,10 @@
     {
       "id": "8",
       "name": "Lightweight Table",
-      "price": 10,
       "model": "lightweighttable-00.glb",
       "year": "2025",
       "medium": "3/4\" pine plywood",
       "dimensions": "48\"w x 24\"d x 31\"h",
-      "checkoutUrl": "",
       "shortDescription": "Lightweight table design optimized for easy transport and assembly.",
       "fullDescription": [
         "A lightweight table design featuring efficient use of materials while maintaining stability and durability.",
@@ -63,12 +55,10 @@
     {
       "id": "9",
       "name": "Coming Soon",
-      "price": 0,
       "model": "fullsheetply-00.glb",
       "year": "2025",
       "medium": "3/4\" pine plywood",
       "dimensions": "96\"w x 48\"d x .75\"h",
-      "checkoutUrl": "",
       "shortDescription": "More designs coming soon. Stay tuned for new furniture plans.",
       "fullDescription": [
         "More furniture designs are in development.",

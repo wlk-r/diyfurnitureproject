@@ -102,7 +102,6 @@ function createProductCard(product, index) {
           <span class="model-dimensions">${product.dimensions}</span>
         </div>
       </div>
-      <span class="model-price">$${product.price}</span>
     </div>
   `;
 
@@ -177,22 +176,14 @@ async function loadProductDetail(productId) {
         .join('');
     }
 
-    // Add buy button
-    const buyButtonContainer = document.querySelector('.buy-button-container');
-    if (buyButtonContainer) {
-      if (product.checkoutUrl) {
-        buyButtonContainer.innerHTML = `
-          <a href="${product.checkoutUrl}" class="buy-button" target="_blank">
-            Buy Plan — $${product.price}
-          </a>
-        `;
-      } else {
-        buyButtonContainer.innerHTML = `
-          <span class="buy-button buy-button-disabled">
-            Coming Soon — $${product.price}
-          </span>
-        `;
-      }
+    // Add download button
+    const downloadButtonContainer = document.querySelector('.download-button-container');
+    if (downloadButtonContainer) {
+      downloadButtonContainer.innerHTML = `
+        <span class="download-button download-button-disabled">
+          Download PDF — Coming Soon
+        </span>
+      `;
     }
 
     console.log(`Loaded product detail for: ${product.name}`);
